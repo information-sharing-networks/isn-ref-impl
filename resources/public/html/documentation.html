@@ -1,0 +1,217 @@
+<div class="col-lg-9" role="main">
+    <div class="h-card card">
+        <div class="card-header">
+            <h1>Documentation</h1>
+        </div>
+        <div class="card-body">
+            <p class="p-note card-text">Describes how to use your ISN and it's network site, participant sites and
+                mirrors.</p>
+        </div>
+    </div>
+
+    <div class="h-card card">
+        <div class="card-header">
+            <h1>What is the ISN?</h1>
+        </div>
+        <div class="card-body">
+            <p>ISNs are general purpose information sharing networks (extensible to be useful within many domains). They
+                are multilateral by default but do permit bilateral information sharing.</p>
+            <p>Every participant (consortium, organisation or person) in an ISN has a site (with their own URI) to
+                which they can publish
+                signals. Signals may be syndicated via paramater (as they are contributed) to a specified mirror (a
+                mirror may be provided as part of this demonstrator ISN).</p>
+            <p>Where access control is configured accordingly participants may view the signals contributed by others by
+                logging in to other participant sites.</p>
+            <p>Any ISN participant can reply to (comment on) a signal contributed by another - this permits a growing
+                set of opinions/claims/attestations to form around the original signal in a flexible and distributed
+                workflow. The <a href="https://www.w3.org/TR/webmention/" target="_blank">W3C Webmention</a> protocol is
+                used in this reference example ISN to permit authenticated parties to associate their
+                opinions/claims/attestations to signals on the site of those who contribute them (and on any mirror
+                sites which have been setup within the ISN).</p>
+            <p>Information within ISNs is represented via the <a
+                    href="https://github.com/information-sharing-networks/signals/blob/main/README.md#signal-definition">signals
+                    protocol</a> internally.
+                For interoperabililty purposes the signal implementation selected for the demonstrator ISNs is a <a
+                    href="https://microformats.org/wiki/h-event" target="_blank">Microformat 2
+                    'event'</a> which we use to reason over not just future events but also events from the past.
+            </p>
+        </div>
+    </div>
+
+    <div class="h-card card">
+        <div class="card-header">
+            <h2>ISN building blocks</h2>
+        </div>
+        <div class="card-body">
+            <p>An ISN is comprised of four building blocks:</p>
+            <ul>
+                <li>An ISN network site (which is the entry point into the ISN and provides detail on participants
+                    sites, mirrors and the intent behind the ISN etc).</li>
+                <li>ISN participant sites (which participants use to publish signals into the ISN - N.B. it is possible
+                    for a participant to have more than one site in an ISN)</li>
+                <li>ISN mirror sites (gathers signals of various
+                    categories which are syndicated to it by ISN participants to simplify the process for participants
+                    looking to subscribe to insight published by others)</li>
+                <li>A governance framework which sets out how the ISN and its particpiants are to operate (this may be
+                    one of a number of pluggable variants e.g. Collaboration Agreement</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="h-card card">
+        <div class="card-header">
+            <h2>ISN Network Executive Committee</h2>
+        </div>
+        <div class="card-body">
+            <h3 class="card-title">Getting Started</h3>
+            <p>As a member of the ISN (or EoT) Network Executive Committee you will mostly be administering one or more
+                ISNs.</p>
+            <h4 class="card-title">Setup</h4>
+            <p>
+                TODO: TBD
+            </p>
+            <h4 class="card-title">Creating an ISN signal</h4>
+            <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
+                <a href="https://www.w3.org/TR/indieauth/" target="_blank">W3C Indieauth (OAuth-2)</a>.
+            </p>
+            <p>
+                Once you have a bearer token you can use your ISN site Micropub endpoint to contribute signals via API
+                with content type application/x-www-form-urlencoded similar to the below.
+            </p>
+            <p>For example to onboard a new ISN participant</p>
+            <pre><code>curl -i -X POST -d h=event -d category=isn-participant -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added
+            to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
+            <p>For example to add a new mirror</p>
+            <pre><code>curl -i -X POST -d h=event -d category=isn-mirror -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
+        </div>
+    </div>
+
+    <div class="h-card card">
+        <div class="card-header">
+            <h2>ISN participants</h2>
+        </div>
+        <div class="card-body">
+            <h3 class="card-title">Getting Started</h3>
+            <p>As an ISN participant you will mostly be working with your own ISN site(s).</p>
+            <h4 class="card-title">Setup</h4>
+            <p>
+                You will need to get help setting up or configuring your own ISN site which contributes signals into the
+                ISN you are participating in on your behalf. Please reach out to <a href="#support">Support</a>.
+            </p>
+
+            <h4 class="card-title">Viewing signals</h4>
+            <p>Only authenticated organisations can see signals on any ISN site or syndicator site (mirror) whether the
+                ISN is moving synthesised signals or live ones. This ISN is open, multilateral by default but does
+                permit bilateral self sovereign information sharing.</p>
+
+            <p>You can view signals in three ways:</p>
+            <ul>
+                <li>Going to the <a href="/">home page</a> of your ISN site</li>
+                <li>Viewing signals using the API</li>
+                <li>Using any Microsub Reader client you have set up to receive notifications on new signals (TODO: to
+                    be documented)</li>
+            </ul>
+
+            <h5 class="card-title">Viewing signals with the API</h5>
+            <p>
+                You will need a bearer token (API) or to authenticate (ISN Site webapp) to view either synthesised
+                signals or live ones in this demonstrator ISN.
+            </p>
+            <pre><code>curl -i -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/signals</code></pre>
+            <p>
+               You can filter signals using query parameters. Filtering is a flexible mechanism an example is provided below combining a number of filters.
+            </p>
+            <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?provider=x&countryCode=y</code></pre>
+
+            <h4 class="card-title">Creating a signal</h4>
+            <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
+                <a href="https://www.w3.org/TR/indieauth/" target="_blank">W3C Indieauth (OAuth-2)</a>. This ISN does
+                not trace contributed signals back to end users - part of what we
+                are doing is exploring ways to move information that do not experience the same level of information
+                governance friction.
+            </p>
+            <p>
+                Once you have a bearer token you can use your ISN site Micropub endpoint to contribute signals via API
+                with content type application/x-www-form-urlencoded similar to the below.
+            </p>
+            <pre><code>curl -i -X POST -d h=event -d "name=nuts" -d "summary=a predicate based on nuts" -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/micropub</code></pre>
+            <p>
+                This will create the simplest possible signal under the home page on your ISN site.
+            </p>
+            <pre><code>
+                curl -i -X POST -d h=event -d "name=nuts" -d "summary=a predicate based on nuts" -d mp-syndicate-to=https://a.isn-mirror.io -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/micropub
+            </code></pre>
+            <p>
+                This will create a simple signal under the signals page on your ISN site and send the same signal to an
+                optional mirror within your ISN.
+            </p>
+            <p>
+                Possibilities for attributes are listed below:
+            </p>
+
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Attribute</th>
+                        <th>Description</th>
+                        <th>Optionality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>h</td>
+                        <td>Indicates the post type we are creating - for signals this is 'event'</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td>name</td>
+                        <td>A human readable name for the signal. This is the 'object' of the signal. E.G. 'nuts'</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td>summary</td>
+                        <td>A human readable name for the signal.</td>
+                        <td>Required</td>
+                    </tr>
+                    <tr>
+                        <td>description</td>
+                        <td>Permits structured data to be passed in to the signal separated by a '^' character. E.G.
+                            cn-code=XXX^container-id=YYY^priority=5^correlation-id=5cd2e7db-8c56-4514-b6c5-bde69ce66604.
+                            N.B.
+                            correlation-id is an important element of structured data if not present it is created by
+                            the system
+                            and is used to attach information to an existing signal 'thread'.
+                        </td>
+                        <td>Optional</td>
+                    </tr>
+                    <tr>
+                        <td>start</td>
+                        <td>Every signal has a start date (ISO 8601) - if not provided in the API call the default is
+                            set to the current instant in time</td>
+                        <td>Optional</td>
+                    </tr>
+                    <tr>
+                        <td>end</td>
+                        <td>Every signal has an end or expiry date (ISO 8601) - if not provided in the API call the
+                            default in terms ofdays from now is configured for an organisations ISN site. This can be
+                            passed in per '2023-02-07T21:00:00Z' or '2023-02-07 21:00:00'.</td>
+                        <td>Optional</td>
+                    </tr>
+                    <tr>
+                        <td>location</td>
+                        <td>Typically a significant point on the goods journey - but this could be set to indicate a
+                            system from where a signal originates e.g. signals.my-example.xyz_system-x.</td>
+                        <td>Optional</td>
+                    </tr>
+                    <tr>
+                        <td>category</td>
+                        <td>The category for this signal. There are many possible uses for this field. One example might
+                            be to indicate if the signal repreents a positive or negative profile ('positive-profile',
+                            'negative-profile').</td>
+                        <td>Optional</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

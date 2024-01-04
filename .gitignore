@@ -1,0 +1,17 @@
+*~
+.cpcache
+.DS_Store
+.idea
+.lsp
+.clj-kondo
+.nrepl-port
+nohup.out
+config.edn
+deploy.sh
+version.edn
+isn.tgz
+key.pub
+isn-ref-impl.iml
+logs
+resources/public/data/notes/*.edn
+resources/public/data/signals/*.edn
