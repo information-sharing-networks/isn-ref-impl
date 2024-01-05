@@ -51,7 +51,7 @@
 ;;;; ===========================================================================
 
 (defn s-uri? [x]  (if (uri? (java.net.URI. x)) true false))
-(defn s-exists?[x] (if (.exists (file x)) true false))
+(defn s-exists? [x] (if (.exists (file x)) true false))
 
 (s/def ::site-name  string?)
 (s/def ::site-root string?)
@@ -107,10 +107,10 @@
 (defn make-filter [[k v]] (filter #(re-find (re-pattern v) (k %))))
 
 (defn get-token []
-   (let [xs (filter #(.isFile %) (file-seq (file (str data-path "/token.edn"))))]
-     (if (seq xs)
-       (:token (file->edn (first xs)))
-       nil)))
+  (let [xs (filter #(.isFile %) (file-seq (file (str data-path "/token.edn"))))]
+    (if (seq xs)
+      (:token (file->edn (first xs)))
+      nil)))
 
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
   (let [xs-files   (filter #(.isFile %) (file-seq (file path)))
@@ -271,6 +271,14 @@
         [:a {:href (str "/" (:permafrag sig)) :class "u-url"}
          [:h2 {:class "p-name"} (:object sig)]]
         [:div
+         [:h3 "Signal payload"]
+         (when-not (= (:category sig) "isn")
+
+           (for [[k v] (:payload sig)]
+             [:div
+              [:b (str (name k) " : ")]
+              [:span v]]))
+         [:h3 "Signal metadata"]
          [:b "Summary: "]
          [:span {:class "p-summary"} (:summary sig)]]
         [:div {:class "h-product"}
@@ -279,11 +287,7 @@
           [:span {:class "u-identified"} (:signalId sig)]
           [:div
            [:b "Correlation ID: "]
-           [:span {:class "workflow-correlation"} (:correlation-id sig)]]
-          (when-not (= (:category sig) "isn")
-            [:div
-             [:b "Commodity code: "]
-             [:span (:cnCode sig)]])]]
+           [:span {:class "workflow-correlation"} (:correlation-id sig)]]]]
         (when-not (= (:category sig) "isn")
           [:div
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
@@ -321,10 +325,10 @@
           [:div {:class "col-lg-9" :role "main"}
            (when (some #{site-type} #{"site" "mirror"})
              (card "Latest signals"
-                    [:form {:action "/dashboard" :method "get" :name "filterform" }
-                     [:i {:class "bi bi-filter"}] [:input {:id "provider" :name "provider" :placeholder "provider.domain.xyz"}]]
-                    [:br]
-                    (signals-list sorted-instant-edn signal-list-item query-params)))
+                   [:form {:action "/dashboard" :method "get" :name "filterform"}
+                    [:i {:class "bi bi-filter"}] [:input {:id "provider" :name "provider" :placeholder "provider.domain.xyz"}]]
+                   [:br]
+                   (signals-list sorted-instant-edn signal-list-item query-params)))
            (when (= site-type "isn")
              [:div
               (card "ISN Details"
@@ -337,14 +341,14 @@
                     (signals-list mirrors-edn signal-list-item query-params))])])
     (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
 
- (defn account [{:keys [session]}]
-   (if (or (:user session) (dev?))
-     (page session
-           [:div {:class "col-lg-9" :role "main"}
-            (card "Account"
-                  [:h3 "API Token"]
-                  [:p {:class "wrap-break"} (:token session)])])
-     (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
+(defn account [{:keys [session]}]
+  (if (or (:user session) (dev?))
+    (page session
+          [:div {:class "col-lg-9" :role "main"}
+           (card "Account"
+                 [:h3 "API Token"]
+                 [:p {:class "wrap-break"} (:token session)])])
+    (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
 
 (defn login [{:keys [session]}]
   (page session
@@ -366,8 +370,8 @@
         user (:host (uri domain))
         token (or (get-token) (get-in @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me "https://btd-2-mirror.signals-isn.io" :redirect_uri (redirect-uri)}}) ["access_token" :body]))]
     (if (some #{user} (:authcn-ids cfg))
-      (do 
-        (when-not (get-token) (spit (java.io.File. (str data-path "/token.edn")) (with-out-str (pp/write {:token token} :dispatch pp/code-dispatch))) )
+      (do
+        (when-not (get-token) (spit (java.io.File. (str data-path "/token.edn")) (with-out-str (pp/write {:token token} :dispatch pp/code-dispatch))))
         (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token token})))
       (-> (redirect "/")))))
 
@@ -432,8 +436,9 @@
                         (assoc :correlation-id corr-id)
                         (assoc :signalId sig-id)
                         (assoc :start (if (blank? (:start m)) (str (jt/instant)) (str->inst (:start m))))
-                        (assoc :end (if (blank? (:end m)) (str (jt/instant (jt/plus (jt/instant) (jt/days (:days-from-now cfg))))) (str->inst (:end m)))))]
-    (merge map-data primary-map)))
+                        (assoc :end (if (blank? (:end m)) (str (jt/instant (jt/plus (jt/instant) (jt/days (:days-from-now cfg))))) (str->inst (:end m))))
+                        (assoc :payload map-data))]
+    primary-map))
 
 ;; https://www.w3.org/TR/micropub/
 ;; The means by which we publish a signal on to an ISN Site
