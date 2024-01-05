@@ -17,7 +17,6 @@
  :environment "dev" ; setting the env to dev will remove the need to supply a valid token
  :dev-site "https://example.com" ; default site to use in token lookup site resolution in dev mode  e.g. :dev-site "https://example.com"
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
- :isn-site "https://some-isn-domain.tld" ; the URI for the ISN network site
  :network-site "https://some-network-site.tld" ; the URI for the ISN network site or entry point - all participant sites and mirrors should be able to link back to it
  :csp-settings {:connect-src #ref [:site-root]
                 :frame-ancestors #ref [:site-root]
