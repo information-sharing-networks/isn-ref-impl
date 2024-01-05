@@ -6,7 +6,7 @@
  :rel-root "https://your.domain.tld" ; used as a prefix before rel links
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
  :author "signals.my-example.xyz" ; typically set to the sites domain e.g. 'signals.my-example.xyz'
- :authcn-ids #{} ; used if you would like to check the id from a bearer token e.g. :authcn-ids #{"example.com"}
+ :authcn-ids #{} ; used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
  :site-type "site" ; may be site (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or isn (entry site)
  :days-from-now 7
