@@ -47,6 +47,8 @@
 
 (def pr-fs (itsfile/repo {:data-path data-path}))
 
+(def form-enc {"Accept" "application/x-www-form-urlencoded"})
+
 ;;;; Utility functions.
 ;;;; ===========================================================================
 
@@ -105,12 +107,6 @@
 (defn file->edn [file] (->> file slurp edn/read-string))
 
 (defn make-filter [[k v]] (filter #(re-find (re-pattern v) (k %))))
-
-(defn get-token []
-  (let [xs (filter #(.isFile %) (file-seq (file (str data-path "/token.edn"))))]
-    (if (seq xs)
-      (:token (file->edn (first xs)))
-      nil)))
 
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
   (let [xs-files   (filter #(.isFile %) (file-seq (file path)))
@@ -341,13 +337,13 @@
                     (signals-list mirrors-edn signal-list-item query-params))])])
     (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
 
-(defn account [{:keys [session]}]
-  (if (or (:user session) (dev?))
+(defn account [{{:keys [token user] :as session} :session}]
+  (if (or user (dev?))
     (page session
           [:div {:class "col-lg-9" :role "main"}
            (card "Account"
                  [:h3 "API Token"]
-                 [:p {:class "wrap-break"} (:token session)])])
+                 [:p {:class "wrap-break"} token])])
     (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
 
 (defn login [{:keys [session]}]
@@ -362,17 +358,19 @@
           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
           [:input {:type "hidden" :name "state" :value "blurb"}]]]))
 
+;; The callback function for indieauth authentication, gets the user's profile plus an access token
+;; The means by which we authenticate and associate a user and token into our session
+;; https://indieweb.org/obtaining-an-access-token
+;; https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code
 (defn indieauth-redirect [{:keys [path-params query-params session]}]
   (let [code (:code query-params)
-        site (:site path-params)
-        rsp @(client/post "https://indieauth.com/auth" {:headers {"Accept" "application/x-www-form-urlencoded"} :form-params {:code code :redirect_uri (redirect-uri) :client_id (client-id)}})
-        domain ((json/read-str (:body rsp)) "me")
-        user (:host (uri domain))
-        token (or (get-token) (get-in @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me "https://btd-2-mirror.signals-isn.io" :redirect_uri (redirect-uri)}}) ["access_token" :body]))]
+        site (:site path-params)        
+        rsp @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
+        {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
+        user (:host (uri me))        ]
     (if (some #{user} (:authcn-ids cfg))
       (do
-        (when-not (get-token) (spit (java.io.File. (str data-path "/token.edn")) (with-out-str (pp/write {:token token} :dispatch pp/code-dispatch))))
-        (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token token})))
+        (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token})))
       (-> (redirect "/")))))
 
 (defn about [{:keys [session]}]
@@ -454,7 +452,7 @@
         (its/create pr-fs (str "/" (:permafrag post-data) ".edn") post-data)
         (when (:mp-syndicate-to params)
           (let [synd-uri (str (:mp-syndicate-to params) "/webmention")
-                options {:headers {"Authorization" token "Accept" "application/x-www-form-urlencoded"}
+                options {:headers (merge {"Authorization" token} form-enc)
                          :form-params {:target synd-uri :source loc-hdr}}]
             @(client/post synd-uri options)))
         {:status 201 :headers {"Location" loc-hdr} :body "post has been created"})
