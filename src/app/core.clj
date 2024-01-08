@@ -156,47 +156,47 @@
           [:title (:site-name cfg)]]])
 
 (defn navbar [{:keys [token user]}]
-  [:nav {:class "navbar navbar-expand-md navbar-light fixed-top bg-light"}
-   [:div {:class "container-fluid"}
-    [:a {:class "navbar-brand" :href "/"} (:site-name cfg)]
-    [:button {:class "navbar-toggler" :type "button" :data-toggle "collapse" :data-target "#navbarCollapse" :aria-controls "navbarCollapse" :aria-expanded "false" :aria-label "Toggle navigation"}
-     [:span {:class "navbar-toggler-icon"}]]
-    [:div {:class "collapse navbar-collapse" :id "navbarCollapse"}
-     [:ul {:id "header-page-links" :class "navbar-nav mr-auto"}
-      [:li {:class "nav-item"} [:a {:class "nav-link" :href "/dashboard"} "Dashboard"]]
-      [:li {:class "nav-item"} [:a {:class "nav-link" :href "/about"} "About"]]
-      [:li {:class "nav-item"} [:a {:class "nav-link" :href "/documentation"} "Documentation"]]
-      (when user [:li {:class "nav-item"} [:a {:class "nav-link" :href "/account"} "Account"]])]]]])
+  [:nav.navbar.navbar-expand-md.navbar-light.fixed-top.bg-light
+   [:div.container-fluid
+    [:a.navbar-brand {:href "/"} (:site-name cfg)]
+    [:button.navbar-toggler {:type "button" :data-toggle "collapse" :data-target "#navbarCollapse" :aria-controls "navbarCollapse" :aria-expanded "false" :aria-label "Toggle navigation"}
+     [:span.navbar-toggler-icon]]
+    [:div#navbarCollapse.collapse.navbar-collapse
+     [:ul#header-page-links.navbar-nav.mr-auto
+      [:li.nav-item [:a.nav-link {:href "/dashboard"} "Dashboard"]]
+      [:li.nav-item [:a.nav-link {:href "/about"} "About"]]
+      [:li.nav-item [:a.nav-link {:href "/documentation"} "Documentation"]]
+      (when user [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
 
 (defn info-mirror []
-  [:div {:class "col-lg-9" :role "main"}
-   [:div {:class "alert alert-info mirror-info" :role "alert"}
+  [:div.col-lg-9 {:role "main"}
+   [:div.alert.alert-info.mirror-info {:role "alert"}
     [:p "This is an Ecosystem of Trust demonstrator ISN mirror"]
     [:p "Topics are published here that are relevant to the ISN participants who subscribe to this mirror"]]])
 
 (defn info-isn []
-  [:div {:class "col-lg-9" :role "main"}
-   [:div {:class "alert alert-success mirror-info" :role "alert"}
+  [:div.col-lg-9 {:role "main"}
+   [:div.alert.alert-success.mirror-info {:role "alert"}
     [:p "This is an Ecosystem of Trust demonstrator ISN Site"]
     [:p "Detail on the ISN participants and signal topics can be found here"]]])
 
 (defn body [session & content]
   [:body
    (navbar session)
-   [:div {:class "container-fluid"}
-    [:div {:class "row"}
+   [:div.container-fluid
+    [:div.row
      (when (= site-type "mirror") (info-mirror))
      (when (= site-type "isn") (info-isn))
      content]]
-   [:div {:class "container-fluid"}
+   [:div.container-fluid
     [:footer
-     [:ul {:class "list-horizontal"}
+     [:ul.list-horizontal
       [:li
-       [:a {:class "u-uid u-url" :href "/"}
-        [:i {:class "bi bi-house-fill"}]]]
+       [:a.u-uid.u-url {:href "/"}
+        [:i.bi.bi-house-fill]]]
       [:li
-       [:a {:rel "me" :class "u-url" :href (:rel-me-github cfg)}
-        [:i {:class "bi bi-github"}]]]]
+       [:a.u-url {:rel "me" :href (:rel-me-github cfg)}
+        [:i.bi.bi-github]]]]
      [:p
       [:small "This site is part of an " [:a {:href (:network-site cfg) :target "_blank"} "EoT ISN"] ", for support please email : "]
       [:small [:a {:name "support"} [:a {:href (str "mailto:" (:support-email cfg))} (:support-email cfg)]]]]
@@ -208,9 +208,9 @@
 (defn page [session markup] (response (html5 (head) (body session markup))))
 
 (defn card [title & body]
-  [:div {:class "card"}
-   [:div {:class "card-header"} [:h2 title]]
-   [:div {:class "card-body"} body]])
+  [:div.card
+   [:div.card-header [:h2 title]]
+   [:div.card-body body]])
 
 (defn login-view []
   (card "Please log in"
@@ -222,83 +222,82 @@
                     (:object sig))]
     [:div
      [:div
-      [:a {:class "p-summary" :href (:permafrag sig)} (:summary sig)]]
-     [:div {:class "p-name"} [:b "Object : "] obj-inner]
+      [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
+     [:div.p-name [:b "Object : "] obj-inner]
      (when-not (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
        [:div
         [:b "Expires:"]
-        [:span {:class "dt-end"} (:end sig)]
+        [:span.dt-end (:end sig)]
         ", "
         [:b "Priority : "]
-        [:span {:class "h-review p-rating"} (or (:priority sig) "N/A")]])
+        [:span.h-review.p-rating (or (:priority sig) "N/A")]])
      [:div
       [:b "Provider : "]
-      [:a {:class "p-author h-card" :href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
+      [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
       ", "
       [:b "Published : "]
-      [:time {:class "dt-published" :datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
+      [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
 
 (defn signals-list [f-sig-list f-sig-item query-params]
   (let [sorted-xs (f-sig-list {:api? false :filters (or query-params {})})]
-    [:div {:class "h-feed"}
-     [:ul {:class "list-group"}
+    [:div.h-feed
+     [:ul.list-group
       (for [[k v] sorted-xs]
         (let [sorted-sigs (sort-by :publishedDateTime v)
               oldest (first (sort-by :publishedDateTime v))]
-          [:li {:class "h-event list-group-item"}
+          [:li.h-event.list-group-item
            (f-sig-item (first sorted-sigs) false)
            (when (not-empty (rest sorted-sigs))
-             [:ul {:class "list-group"}
+             [:ul.list-group
               (for [sig (rest sorted-sigs)]
-                [:li {:class "h-event thread list-group-item"}
+                [:li.h-event.thread.list-group-item
                  [:div
-                  [:i {:class "bi bi-list-nested"}] " "
-                  [:a {:class "p-summary" :href (:permafrag sig)} (:summary sig)]]])])]))]]))
+                  [:i.bi.bi-list-nested] " "
+                  [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]])])]))]]))
 
 (defn signal-item [signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
         sig (file->edn f-name)]
-    [:div {:class "col-lg-9" :role "main"}
-     [:div {:class "card"}
-      [:div {:class "card-header"}
+    [:div.col-lg-9 {:role "main"}
+     [:div.card
+      [:div.card-header
        [:h2 "Signal detail"]]
-      [:div {:class "card-body"}
-       [:article {:class "h-event"}
-        [:a {:href (str "/" (:permafrag sig)) :class "u-url"}
-         [:h2 {:class "p-name"} (:object sig)]]
+      [:div.card-body
+       [:article.h-event
+        [:a.u-url {:href (str "/" (:permafrag sig))}
+         [:h2.p-name (:object sig)]]
         [:div
          [:h3 "Signal payload"]
          (when-not (= (:category sig) "isn")
-
            (for [[k v] (:payload sig)]
              [:div
               [:b (str (name k) " : ")]
               [:span v]]))
          [:h3 "Signal metadata"]
          [:b "Summary: "]
-         [:span {:class "p-summary"} (:summary sig)]]
-        [:div {:class "h-product"}
+         [:span.p-summary (:summary sig)]]
+        [:div.h-product
          [:div
           [:b "Signal ID: "]
-          [:span {:class "u-identified"} (:signalId sig)]
+          [:span.u-identified (:signalId sig)]
           [:div
            [:b "Correlation ID: "]
-           [:span {:class "workflow-correlation"} (:correlation-id sig)]]]]
+           [:span.workflow-correlation (:correlation-id sig)]]]]
         (when-not (= (:category sig) "isn")
           [:div
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
-           [:div {:class "h-review"}
+           [:div.h-review
             [:b "Priority : "]
-            [:span {:class "p-rating"} (:priority sig)]]
+            [:span.p-rating (:priority sig)]]
            [:div
             [:b "Expires : "]
-            [:span {:class "dt-end"} (:end sig)]]])
+            [:span.dt-end (:end sig)]]])
         [:div "Provider : "
-         [:a {:href (str "https://" (:provider sig)) :target "_blank" :class "h-card p-name" :rel "author"} (:provider sig)]]
+         [:a.h-card.p-name {:href (str "https://" (:provider sig)) :target "_blank" :rel "author"} (:provider sig)]]
         [:div "Published : "
-         [:time {:class "dt-published" :datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]
+         [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]
         [:div "Category : "
-         [:span {:class "p-category"} (:category sig)]]
+         [:span.p-category (:category sig)]]
         (when (:syndicated-from sig)
           [:div "Syndicated from : "
            [:a {:href (:syndicated-from sig)} (:provider sig)]])]]]]))
@@ -308,7 +307,7 @@
 
 (defn home [{:keys [session]}]
   (page session
-        [:div {:class "col-lg-9" :role "main"}
+        [:div.col-lg-9 {:role "main"}
          (if (or (:user session) (dev?))
            (card "Home"
                  [:p "This is an ISN site - part of an EoT BTD"]
@@ -318,11 +317,11 @@
 (defn dashboard [{:keys [query-params session]}]
   (if (or (:user session) (dev?))
     (page session
-          [:div {:class "col-lg-9" :role "main"}
+          [:div.col-lg-9 {:role "main"}
            (when (some #{site-type} #{"site" "mirror"})
              (card "Latest signals"
                    [:form {:action "/dashboard" :method "get" :name "filterform"}
-                    [:i {:class "bi bi-filter"}] [:input {:id "provider" :name "provider" :placeholder "provider.domain.xyz"}]]
+                    [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
                    [:br]
                    (signals-list sorted-instant-edn signal-list-item query-params)))
            (when (= site-type "isn")
@@ -335,24 +334,24 @@
                     (signals-list participants-edn signal-list-item query-params))
               (card "Isn mirrors"
                     (signals-list mirrors-edn signal-list-item query-params))])])
-    (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
+    (page session [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn account [{{:keys [token user] :as session} :session}]
   (if (or user (dev?))
     (page session
-          [:div {:class "col-lg-9" :role "main"}
+          [:div.col-lg-9 {:role "main"}
            (card "Account"
                  [:h3 "API Token"]
-                 [:p {:class "wrap-break"} token])])
-    (page session [:div {:class "col-lg-9" :role "main"} (login-view)])))
+                 [:p.wrap-break token])])
+    (page session [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn login [{:keys [session]}]
   (page session
-        [:div {:class "col-lg-9" :role "main"}
+        [:div.col-lg-9 {:role "main"}
          [:h2  "Login"]
          [:form {:action "https://indieauth.com/auth" :method "get"}
           [:label {:for "url"} "Web Address "]
-          [:input {:id "url" :type "text" :name "me" :placeholder "https://yourdomain.you"}]
+          [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
           [:p [:button {:type "submit"} "Sign in"]]
           [:input {:type "hidden" :name "client_id" :value (client-id)}]
           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
