@@ -351,9 +351,9 @@
         [:div {:class "col-lg-9" :role "main"}
          [:h2  "Login"]
          [:form {:action "https://indieauth.com/auth" :method "get"}
-          [:label {:for "url" :class "drac-text-purple-cyan"} "Web Address "]
+          [:label {:for "url"} "Web Address "]
           [:input {:id "url" :type "text" :name "me" :placeholder "https://yourdomain.you"}]
-          [:p [:button {:type "submit" :class "drac-text-purple-cyan"} "Sign in"]]
+          [:p [:button {:type "submit"} "Sign in"]]
           [:input {:type "hidden" :name "client_id" :value (client-id)}]
           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
           [:input {:type "hidden" :name "state" :value "blurb"}]]]))
