@@ -332,7 +332,7 @@
                      [:li (str "Purpose: " (:isn-purpose cfg))]])
               (card "ISN participants"
                     (signals-list participants-edn signal-list-item query-params))
-              (card "Isn mirrors"
+              (card "ISN mirrors"
                     (signals-list mirrors-edn signal-list-item query-params))])])
     (page session [:div.col-lg-9 {:role "main"} (login-view)])))
 
