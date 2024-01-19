@@ -171,14 +171,14 @@
 (defn info-mirror []
   [:div.col-lg-9 {:role "main"}
    [:div.alert.alert-info.mirror-info {:role "alert"}
-    [:p "This is an Ecosystem of Trust demonstrator ISN mirror"]
-    [:p "Topics are published here that are relevant to the ISN participants who subscribe to this mirror"]]])
+    [:p "This is an Ecosystem of Trust demonstrator ISN Mirror Site"]
+    [:p "Topics are published here that are relevant to the ISN participants who collaborate in this ISN"]]])
 
 (defn info-isn []
   [:div.col-lg-9 {:role "main"}
    [:div.alert.alert-success.mirror-info {:role "alert"}
-    [:p "This is an Ecosystem of Trust demonstrator ISN Site"]
-    [:p "Detail on the ISN participants and signal topics can be found here"]]])
+    [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
+    [:p "Detail on the ISN participants and network mirror sites are provided here"]]])
 
 (defn body [session & content]
   [:body
