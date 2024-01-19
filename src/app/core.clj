@@ -125,7 +125,7 @@
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
         xs-isn (filter #(= (:category %) "isn-participant") xs-edn)
-        xs (distinct-by #(% :provider) xs-isn)]
+        xs (distinct-by #(% :object) xs-isn)]
     (group-by :correlation-id xs)))
 
 (defn- mirrors-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
