@@ -199,7 +199,7 @@
       [:small "This site is part of an " [:a {:href (:network-site cfg) :target "_blank"} "EoT ISN"] ", for support please email : "]
       [:small [:a {:name "support"} [:a {:href (str "mailto:" (:support-email cfg))} (:support-email cfg)]]]]
      [:p
-      [:small "Built using isn-toolkit v" (get-in cfg [:version :isn-toolkit])]]]]
+      [:small "Built using isn-toolkit v" (get-in cfg [:version :isn-toolkit]) ". View " [:a {:href "/privacy"} "privacy"] " information."]]]]
    ;[:script {:src "//code.jquery.com/jquery.js"}]
    [:script {:src "/js/bootstrap.min.js"}]])
 
@@ -371,6 +371,8 @@
           (html->hiccup (slurp "resources/public/html/documentation.html"))
           (login-view))))
 
+(defn privacy [{:keys [session]}] (page session head body (html->hiccup (slurp "resources/public/html/privacy.html"))))
+
 (defn signal [{:keys [path-params]}] (page nil head body (signal-item (:signal-id path-params))))
 
 ;;;; API
@@ -489,6 +491,7 @@
     ["/signals/:signal-id" :get  (conj htm-tors `signal)]
     ["/about"              :get  (conj ses-tors `about)]
     ["/documentation"      :get  (conj ses-tors `documentation)]
+    ["/privacy"            :get  (conj htm-tors `privacy)]
     ["/micropub"           :post (conj api-tors `micropub)]
     ["/webmention"         :post (conj api-tors `webmention)]
     ["/signals"            :get  (conj api-tors `signals)]
