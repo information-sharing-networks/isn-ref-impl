@@ -185,7 +185,7 @@
     [:div.row
      (when (= site-type "mirror") (info-mirror))
      (when (= site-type "isn") (info-isn))
-     content]]
+     [:div.col-lg-9 {:role "main"} content]]]
    [:div.container-fluid
     [:footer
      [:ul.list-horizontal
@@ -249,7 +249,6 @@
 (defn signal-item [signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
         sig (file->edn f-name)]
-    [:div.col-lg-9 {:role "main"}
      [:div.card
       [:div.card-header
        [:h2 "Signal detail"]]
@@ -291,62 +290,56 @@
          [:span.p-category (:category sig)]]
         (when (:syndicated-from sig)
           [:div "Syndicated from : "
-           [:a {:href (:syndicated-from sig)} (:provider sig)]])]]]]))
+           [:a {:href (:syndicated-from sig)} (:provider sig)]])]]]))
 
 ;;;; Views
 ;;;; ===========================================================================
 
 (defn home [{:keys [session]}]
   (page session head body
-        [:div.col-lg-9 {:role "main"}
-         (if (or (:user session) (dev?))
-           [:ui.l/card {} "Home"
-            [:p "This is an ISN Participant Site - part of an EoT BTD"]
-            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
-           (login-view))]))
+        (if (or (:user session) (dev?))
+          [:ui.l/card {} "Home"
+           [:p "This is an ISN Participant Site - part of an EoT BTD"]
+           [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
+          (login-view))))
 
 (defn dashboard [{:keys [query-params session]}]
   (if (or (:user session) (dev?))
     (page session head body
-          [:div.col-lg-9 {:role "main"}
-           (when (some #{site-type} #{"site" "mirror"})
-             [:ui.l/card {} "Latest signals"
-                   [:form {:action "/dashboard" :method "get" :name "filterform"}
-                    [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
-                   [:br]
-                   (signals-list sorted-instant-edn signal-list-item query-params)])
-           (when (= site-type "isn")
-             [:div
-              [:ui.l/card {} "ISN Details"
-                    [:ul
-                     [:li (str "Name: " (:site-name cfg))]
-                     [:li (str "Purpose: " (:isn-purpose cfg))]]]
-              [:ui.l/card {}  "ISN participants"
-                    (signals-list participants-edn signal-list-item query-params)]
-              [:ui.l/card {}  "ISN mirrors"
-                    (signals-list mirrors-edn signal-list-item query-params)]])])
-    (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
+          (when (some #{site-type} #{"site" "mirror"})
+            [:ui.l/card {} "Latest signals"
+             [:form {:action "/dashboard" :method "get" :name "filterform"}
+              [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
+             [:br]
+             (signals-list sorted-instant-edn signal-list-item query-params)])
+          (when (= site-type "isn")
+            [:div
+             [:ui.l/card {} "ISN Details"
+              [:ul
+               [:li (str "Name: " (:site-name cfg))]
+               [:li (str "Purpose: " (:isn-purpose cfg))]]]
+             [:ui.l/card {}  "ISN participants" (signals-list participants-edn signal-list-item query-params)]
+             [:ui.l/card {}  "ISN mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
+    (page session head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session}]
   (if (or user (dev?))
     (page session head body
-          [:div.col-lg-9 {:role "main"}
-           [:ui.l/card {}  "Account"
-                 [:h3 "API Token"]
-                 [:p.wrap-break token]]])
-    (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
+          [:ui.l/card {}  "Account"
+           [:h3 "API Token"]
+           [:p.wrap-break token]])
+    (page session head body (login-view))))
 
 (defn login [{:keys [session]}]
   (page session head body
-        [:div.col-lg-9 {:role "main"}
-         [:h2  "Login"]
-         [:form {:action "https://indieauth.com/auth" :method "get"}
-          [:label {:for "url"} "Web Address "]
-          [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
-          [:p [:button {:type "submit"} "Sign in"]]
-          [:input {:type "hidden" :name "client_id" :value (client-id)}]
-          [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
-          [:input {:type "hidden" :name "state" :value "blurb"}]]]))
+        [:h2  "Login"]
+        [:form {:action "https://indieauth.com/auth" :method "get"}
+         [:label {:for "url"} "Web Address "]
+         [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
+         [:p [:button {:type "submit"} "Sign in"]]
+         [:input {:type "hidden" :name "client_id" :value (client-id)}]
+         [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
+         [:input {:type "hidden" :name "state" :value "blurb"}]]))
 
 ;; The callback function for indieauth authentication, gets the user's profile plus an access token
 ;; The means by which we authenticate and associate a user and token into our session
