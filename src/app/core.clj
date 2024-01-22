@@ -209,8 +209,8 @@
    [:div.card-body body]])
 
 (defn login-view []
-  (card "Please log in"
-        [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]))
+  [:ui.l/card {} "Please log in"
+        [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]])
 
 (defn signal-list-item [sig nested]
   (let [obj-inner (if (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
@@ -305,9 +305,9 @@
   (page session head body
         [:div.col-lg-9 {:role "main"}
          (if (or (:user session) (dev?))
-           (card "Home"
-                 [:p "This is an ISN Participant Site - part of an EoT BTD"]
-                 [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"])
+           [:ui.l/card {} "Home"
+            [:p "This is an ISN Participant Site - part of an EoT BTD"]
+            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
            (login-view))]))
 
 (defn dashboard [{:keys [query-params session]}]
@@ -315,30 +315,30 @@
     (page session head body
           [:div.col-lg-9 {:role "main"}
            (when (some #{site-type} #{"site" "mirror"})
-             (card "Latest signals"
+             [:ui.l/card {} "Latest signals"
                    [:form {:action "/dashboard" :method "get" :name "filterform"}
                     [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
                    [:br]
-                   (signals-list sorted-instant-edn signal-list-item query-params)))
+                   (signals-list sorted-instant-edn signal-list-item query-params)])
            (when (= site-type "isn")
              [:div
-              (card "ISN Details"
+              [:ui.l/card {} "ISN Details"
                     [:ul
                      [:li (str "Name: " (:site-name cfg))]
-                     [:li (str "Purpose: " (:isn-purpose cfg))]])
-              (card "ISN participants"
-                    (signals-list participants-edn signal-list-item query-params))
-              (card "ISN mirrors"
-                    (signals-list mirrors-edn signal-list-item query-params))])])
+                     [:li (str "Purpose: " (:isn-purpose cfg))]]]
+              [:ui.l/card {}  "ISN participants"
+                    (signals-list participants-edn signal-list-item query-params)]
+              [:ui.l/card {}  "ISN mirrors"
+                    (signals-list mirrors-edn signal-list-item query-params)]])])
     (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn account [{{:keys [token user] :as session} :session}]
   (if (or user (dev?))
     (page session head body
           [:div.col-lg-9 {:role "main"}
-           (card "Account"
+           [:ui.l/card {}  "Account"
                  [:h3 "API Token"]
-                 [:p.wrap-break token])])
+                 [:p.wrap-break token]]])
     (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn login [{:keys [session]}]
