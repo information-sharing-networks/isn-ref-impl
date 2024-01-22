@@ -154,12 +154,12 @@
       (when user [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
 
 (defn info-mirror []
-  [:ui.c/alert-info
+  [:ui.c/alert-info {}
    [:p "This is an Ecosystem of Trust demonstrator ISN Mirror Site"]
    [:p "Topics are published here that are relevant to the ISN participants who collaborate in this ISN"]])
 
 (defn info-isn []
-  [:ui.c/alert-success
+  [:ui.c/alert-success {}
    [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
    [:p "Detail on the ISN participants and network mirror sites are provided here"]])
 
