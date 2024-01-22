@@ -23,7 +23,7 @@
             [ten-d-c.hiccup-server-components.core :refer [->html]]
             [voxmachina.itstore.postrepo :as its]
             [voxmachina.itstore.postrepo-fs :as itsfile]
-            [ui.layout :refer [htm-tors page ses-tors]]
+            [ui.layout :refer [htm-tors html->hiccup page ses-tors]]
             [ui.components])
   (:import java.io.StringReader
            java.util.UUID))
@@ -88,19 +88,6 @@
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn- arr-syntax-key [m] (first (for [[k v] m :when (.contains (name k) "category")] v)))
-
-(defn enlive->hiccup
-  [el]
-  (if-not (string? el)
-    (->> (map enlive->hiccup (:content el))
-         (concat [(:tag el) (:attrs el)])
-         (keep identity)
-         vec)
-    el))
-
-(defn html->enlive [html] (first (html-resource (StringReader. html))))
-
-(defn html->hiccup [html] (-> html html->enlive enlive->hiccup))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
 
@@ -167,24 +154,22 @@
       (when user [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
 
 (defn info-mirror []
-  [:div.col-lg-9 {:role "main"}
-   [:div.alert.alert-info.mirror-info {:role "alert"}
-    [:p "This is an Ecosystem of Trust demonstrator ISN Mirror Site"]
-    [:p "Topics are published here that are relevant to the ISN participants who collaborate in this ISN"]]])
+  [:ui.c/alert-info
+   [:p "This is an Ecosystem of Trust demonstrator ISN Mirror Site"]
+   [:p "Topics are published here that are relevant to the ISN participants who collaborate in this ISN"]])
 
 (defn info-isn []
-  [:div.col-lg-9 {:role "main"}
-   [:div.alert.alert-success.mirror-info {:role "alert"}
-    [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
-    [:p "Detail on the ISN participants and network mirror sites are provided here"]]])
+  [:ui.c/alert-success
+   [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
+   [:p "Detail on the ISN participants and network mirror sites are provided here"]])
 
 (defn body [session & content]
   [:body
    (navbar session)
    [:div.container-fluid
     [:div.row
-     (when (= site-type "mirror") (info-mirror))
-     (when (= site-type "isn") (info-isn))
+     (when (= site-type "mirror") [:div.col-lg-9 {:role "main"} (info-mirror)])
+     (when (= site-type "isn") [:div.col-lg-9 {:role "main"} (info-isn)])
      [:div.col-lg-9 {:role "main"} content]]]
    [:div.container-fluid
     [:footer
