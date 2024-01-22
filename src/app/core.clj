@@ -19,10 +19,12 @@
             [org.httpkit.client :as client]
             [org.httpkit.sni-client :as sni-client]
             [lambdaisland.uri :refer [uri]]
-            [hiccup.page :refer [html5]]
             [net.cgrand.enlive-html :refer [attr? attr-values html-resource select text]]
+            [ten-d-c.hiccup-server-components.core :refer [->html]]
             [voxmachina.itstore.postrepo :as its]
-            [voxmachina.itstore.postrepo-fs :as itsfile])
+            [voxmachina.itstore.postrepo-fs :as itsfile]
+            [ui.layout :refer [htm-tors page ses-tors]]
+            [ui.components])
   (:import java.io.StringReader
            java.util.UUID))
 
@@ -64,11 +66,7 @@
 
 (defn- status [req] {:status 200 :body "Service is running"})
 
-(def htm-tors [(body-params) http/html-body])
-
 (def api-tors [(body-params)])
-
-(def ses-tors [(mw/session {:store (cookie/cookie-store)}) mw/params mw/keyword-params (body-params) http/html-body])
 
 (defn rel-root [] (:rel-root cfg)) ;; REVIEW: use function to provision for multi-tenancy
 
@@ -205,8 +203,6 @@
    ;[:script {:src "//code.jquery.com/jquery.js"}]
    [:script {:src "/js/bootstrap.min.js"}]])
 
-(defn page [session markup] (response (html5 (head) (body session markup))))
-
 (defn card [title & body]
   [:div.card
    [:div.card-header [:h2 title]]
@@ -306,7 +302,7 @@
 ;;;; ===========================================================================
 
 (defn home [{:keys [session]}]
-  (page session
+  (page session head body
         [:div.col-lg-9 {:role "main"}
          (if (or (:user session) (dev?))
            (card "Home"
@@ -316,7 +312,7 @@
 
 (defn dashboard [{:keys [query-params session]}]
   (if (or (:user session) (dev?))
-    (page session
+    (page session head body
           [:div.col-lg-9 {:role "main"}
            (when (some #{site-type} #{"site" "mirror"})
              (card "Latest signals"
@@ -334,19 +330,19 @@
                     (signals-list participants-edn signal-list-item query-params))
               (card "ISN mirrors"
                     (signals-list mirrors-edn signal-list-item query-params))])])
-    (page session [:div.col-lg-9 {:role "main"} (login-view)])))
+    (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn account [{{:keys [token user] :as session} :session}]
   (if (or user (dev?))
-    (page session
+    (page session head body
           [:div.col-lg-9 {:role "main"}
            (card "Account"
                  [:h3 "API Token"]
                  [:p.wrap-break token])])
-    (page session [:div.col-lg-9 {:role "main"} (login-view)])))
+    (page session head body [:div.col-lg-9 {:role "main"} (login-view)])))
 
 (defn login [{:keys [session]}]
-  (page session
+  (page session head body
         [:div.col-lg-9 {:role "main"}
          [:h2  "Login"]
          [:form {:action "https://indieauth.com/auth" :method "get"}
@@ -373,7 +369,7 @@
       (-> (redirect "/")))))
 
 (defn about [{:keys [session]}]
-  (page session
+  (page session head body
         (if (or (:user session) (dev?))
           (condp = site-type
             "site" (html->hiccup (slurp "resources/public/html/about-site.html"))
@@ -382,12 +378,12 @@
           (login-view))))
 
 (defn documentation [{:keys [session]}]
-  (page session
+  (page session head body
         (if (or (:user session) (dev?))
           (html->hiccup (slurp "resources/public/html/documentation.html"))
           (login-view))))
 
-(defn signal [{:keys [path-params]}] (page nil (signal-item (:signal-id path-params))))
+(defn signal [{:keys [path-params]}] (page nil head body (signal-item (:signal-id path-params))))
 
 ;;;; API
 ;;;; ===========================================================================
