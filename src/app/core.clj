@@ -203,11 +203,6 @@
    ;[:script {:src "//code.jquery.com/jquery.js"}]
    [:script {:src "/js/bootstrap.min.js"}]])
 
-(defn card [title & body]
-  [:div.card
-   [:div.card-header [:h2 title]]
-   [:div.card-body body]])
-
 (defn login-view []
   [:ui.l/card {} "Please log in"
         [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]])
