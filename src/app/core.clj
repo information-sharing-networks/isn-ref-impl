@@ -128,12 +128,12 @@
 (defn- selector [src path] (first (map text (select src path))))
 
 (defn- sse-stream-ready [event-chan ctx]
-  (let [{{uri :uri {user :user session-id :session-id connection-uuid :connection-uuid} :path-params} :request} ctx]
-    ;(info :isn/sse-stream-ready "Starting SSE stream for user" (pr-str user) "session-id" (pr-str session-id))
-    (swap! subscribers assoc :connection {:event-channel event-chan :uri uri :session-id session-id})
+  (let [{{uri :uri {client :client connection-uuid :connection-uuid} :path-params} :request} ctx]
+    ;(info :isn/sse-stream-ready "Starting SSE stream for client" client "connection-uuid" connection-uuid)
+    (swap! subscribers assoc (keyword (str client connection-uuid)) {:event-channel event-chan :uri uri})
     (async/>!! event-chan {:name "log-msg" :data "Client has subscribed to ISN SSE stream"})))
 
-(defn- sse-send [msg] (async/>!! (get-in @subscribers [:connection :event-channel]) {:name "isn-signal" :data msg}))
+(defn- sse-send [msg] (doseq [[k v] @subscribers] (async/>!! (:event-channel v) {:name "isn-signal" :data msg})))
 
 ;;;; Components
 ;;;; ===========================================================================
@@ -481,20 +481,20 @@
 ;;;; ===========================================================================
 
 (def routes
-  #{["/"                   :get  (conj ses-tors `home)]
-    ["/login"              :get  (conj ses-tors `login)]
-    ["/indieauth-redirect" :get  (conj ses-tors `indieauth-redirect)]
-    ["/dashboard"          :get  (conj ses-tors `dashboard)]
-    ["/account"            :get  (conj ses-tors `account)]
-    ["/signals/:signal-id" :get  (conj htm-tors `signal)]
-    ["/about"              :get  (conj ses-tors `about)]
-    ["/documentation"      :get  (conj ses-tors `documentation)]
-    ["/privacy"            :get  (conj htm-tors `privacy)]
-    ["/micropub"           :post (conj api-tors `micropub)]
-    ["/webmention"         :post (conj api-tors `webmention)]
-    ["/signals"            :get  (conj api-tors `signals)]
-    ["/status"             :get status :route-name :status]
-    ["/stream"             :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
+  #{["/"                                    :get  (conj ses-tors `home)]
+    ["/login"                               :get  (conj ses-tors `login)]
+    ["/indieauth-redirect"                  :get  (conj ses-tors `indieauth-redirect)]
+    ["/dashboard"                           :get  (conj ses-tors `dashboard)]
+    ["/account"                             :get  (conj ses-tors `account)]
+    ["/signals/:signal-id"                  :get  (conj htm-tors `signal)]
+    ["/about"                               :get  (conj ses-tors `about)]
+    ["/documentation"                       :get  (conj ses-tors `documentation)]
+    ["/privacy"                             :get  (conj htm-tors `privacy)]
+    ["/micropub"                            :post (conj api-tors `micropub)]
+    ["/webmention"                          :post (conj api-tors `webmention)]
+    ["/signals"                             :get  (conj api-tors `signals)]
+    ["/status"                              :get status :route-name :status]
+    ["/stream/sse/:client/:connection-uuid" :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
 
 (def service-map {::http/secure-headers {:content-security-policy-settings (:csp-settings cfg)}
                   ::http/routes            routes
