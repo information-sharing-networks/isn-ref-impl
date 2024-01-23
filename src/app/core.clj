@@ -1,4 +1,5 @@
 (ns app.core
+  (:refer-clojure :exclude [replace])
   (:require [clojure.data.json :as json]
             [clojure.edn :as edn]
             [clojure.java.io :refer [file]]
