@@ -6,16 +6,16 @@
         io.pedestal/pedestal.jetty                 {:mvn/version "0.6.3"}
         aero/aero                                  {:mvn/version "1.1.6"}
         http-kit/http-kit                          {:mvn/version "2.7.0"}
-        lambdaisland/uri                           {:mvn/version "1.16.134"}
+        lambdaisland/uri                           {:mvn/version "1.17.141"}
         hiccup/hiccup                              {:mvn/version "1.0.5"}
         enlive/enlive                              {:mvn/version "1.1.6"}
         dev.weavejester/medley                     {:mvn/version "1.7.0"}
         ch.qos.logback/logback-classic             {:mvn/version "1.4.14"
                                                     :exclusions [org.slf4j/slf4j-api]}
-        org.slf4j/slf4j-api                        {:mvn/version "2.0.10"}
-        org.slf4j/jul-to-slf4j                     {:mvn/version "2.0.10"}
-        org.slf4j/jcl-over-slf4j                   {:mvn/version "2.0.10"}
-        org.slf4j/log4j-over-slf4j                 {:mvn/version "2.0.10"}
+        org.slf4j/slf4j-api                        {:mvn/version "2.0.11"}
+        org.slf4j/jul-to-slf4j                     {:mvn/version "2.0.11"}
+        org.slf4j/jcl-over-slf4j                   {:mvn/version "2.0.11"}
+        org.slf4j/log4j-over-slf4j                 {:mvn/version "2.0.11"}
         net.clojars.t_d_c/hiccup-server-components {:mvn/version "0.20.0"}
         voxmachina/itstore                         {:git/url "https://github.com/vox-machina/itstore" :git/tag "v0.2.11" :git/sha "8f15daa"}
         voxmachina/itui                            {:git/url "https://github.com/vox-machina/itui"    :git/tag "v0.2.10" :git/sha "72a6a0a"}}
