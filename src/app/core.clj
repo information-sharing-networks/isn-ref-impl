@@ -11,7 +11,10 @@
             [io.pedestal.http :as http]
             [io.pedestal.http.body-params :refer [body-params]]
             [io.pedestal.http.ring-middlewares :as mw]
+            [io.pedestal.http.sse :as sse]
             [io.pedestal.log :refer [debug info error]]
+            [clojure.core.async :as async]
+            [clojure.core.async.impl.protocols :as chan]
             [java-time.api :as jt]
             [medley.core :refer [distinct-by]]
             [ring.middleware.session.cookie :as cookie]
@@ -50,6 +53,8 @@
 (def pr-fs (itsfile/repo {:data-path data-path}))
 
 (def form-enc {"Accept" "application/x-www-form-urlencoded"})
+
+(defonce subscribers (atom {}))
 
 ;;;; Utility functions.
 ;;;; ===========================================================================
@@ -122,23 +127,30 @@
 
 (defn- selector [src path] (first (map text (select src path))))
 
+(defn- sse-stream-ready [event-chan ctx]
+  (let [{{uri :uri {user :user session-id :session-id connection-uuid :connection-uuid} :path-params} :request} ctx]
+    ;(info :isn/sse-stream-ready "Starting SSE stream for user" (pr-str user) "session-id" (pr-str session-id))
+    (swap! subscribers assoc :connection {:event-channel event-chan :uri uri :session-id session-id})
+    (async/>!! event-chan {:name "log-msg" :data "Client has subscribed to ISN SSE stream"})))
+
+(defn- sse-send [msg] (async/>!! (get-in @subscribers [:connection :event-channel]) {:name "isn-signal" :data msg}))
 
 ;;;; Components
 ;;;; ===========================================================================
 
 (defn head []
-  [:html [:head
-          [:meta {:charset "utf-8"}]
-          [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
-          [:link {:rel "authorization_endpoint" :href "https://indieauth.com/auth"}]
-          [:link {:rel "token_endpoint" :href "https://tokens.indieauth.com/token"}]
-          [:link {:rel "micropub" :href (str rel-root "/micropub")}]
-          [:link {:rel "webmention" :href (str (:rel-root cfg) "/webmention")}]
-          [:link {:rel "microsub" :href (:microsub-uri cfg)}]
-          [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap.min.css"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap-icons.css"}]
-          [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
-          [:title (:site-name cfg)]]])
+          [:html [:head
+              [:meta {:charset "utf-8"}]
+              [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+              [:link {:rel "authorization_endpoint" :href "https://indieauth.com/auth"}]
+              [:link {:rel "token_endpoint" :href "https://tokens.indieauth.com/token"}]
+              [:link {:rel "micropub" :href (str rel-root "/micropub")}]
+              [:link {:rel "webmention" :href (str (:rel-root cfg) "/webmention")}]
+              [:link {:rel "microsub" :href (:microsub-uri cfg)}]
+              [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap.min.css"}]
+              [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap-icons.css"}]
+              [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
+              [:title (:site-name cfg)]]])
 
 (defn navbar [{:keys [token user]}]
   [:nav.navbar.navbar-expand-md.navbar-light.fixed-top.bg-light
@@ -420,6 +432,7 @@
     (if (and (get-in req [:headers "authorization"]) (authcn? id))
       (do
         (its/create pr-fs (str "/" (:permafrag post-data) ".edn") post-data)
+        (sse-send {:name "isn-signal" :data post-data})
         (when (:mp-syndicate-to params)
           (let [synd-uri (str (:mp-syndicate-to params) "/webmention")
                 options {:headers (merge {"Authorization" token} form-enc)
@@ -480,7 +493,8 @@
     ["/micropub"           :post (conj api-tors `micropub)]
     ["/webmention"         :post (conj api-tors `webmention)]
     ["/signals"            :get  (conj api-tors `signals)]
-    ["/status"             :get status :route-name :status]})
+    ["/status"             :get status :route-name :status]
+    ["/stream"             :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
 
 (def service-map {::http/secure-headers {:content-security-policy-settings (:csp-settings cfg)}
                   ::http/routes            routes
