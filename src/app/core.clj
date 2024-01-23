@@ -198,7 +198,7 @@
   [:ui.l/card {} "Please log in"
         [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]])
 
-(defn signal-list-item [sig nested]
+(defn signal-list-item [sig]
   (let [obj-inner (if (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
                     [:a {:href (str "https://" (:object sig)) :target "_blank"} (:object sig)]
                     (:object sig))]
@@ -225,10 +225,9 @@
     [:div.h-feed
      [:ul.list-group
       (for [[k v] sorted-xs]
-        (let [sorted-sigs (sort-by :publishedDateTime v)
-              oldest (first (sort-by :publishedDateTime v))]
+        (let [sorted-sigs (sort-by :publishedDateTime v)]
           [:li.h-event.list-group-item
-           (f-sig-item (first sorted-sigs) false)
+           (f-sig-item (first sorted-sigs))
            (when (not-empty (rest sorted-sigs))
              [:ul.list-group
               (for [sig (rest sorted-sigs)]
@@ -338,13 +337,11 @@
 ;; https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code
 (defn indieauth-redirect [{:keys [path-params query-params session]}]
   (let [code (:code query-params)
-        site (:site path-params)        
         rsp @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
         user (:host (uri me))        ]
     (if (some #{user} (:authcn-ids cfg))
-      (do
-        (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token})))
+      (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
 (defn about [{:keys [session]}]
@@ -441,8 +438,6 @@
 (defn- webmention [req]
   (let [{id :id token :token} (token-header->id (:headers req))
         params (keywordize-keys (:params req))
-        inst (jt/instant)
-        dt-pub (.toString inst)
         now (jt/local-date)
         published (jt/format "yyyy-MM-dd" now)
         date-pathfrag (replace published "-" "")
