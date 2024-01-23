@@ -2,7 +2,7 @@
   (:require [clojure.tools.build.api :as b]))
 
 (def major-v 0)
-(def minor-v 2)
+(def minor-v 3)
 (def version (format "%d.%d.%s" major-v minor-v (b/git-count-revs nil)))
 (def version-file "version.edn")
 
