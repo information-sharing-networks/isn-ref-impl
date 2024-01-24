@@ -158,7 +158,7 @@
    [:p "This is an Ecosystem of Trust demonstrator ISN Mirror Site"]
    [:p "Topics are published here that are relevant to the ISN participants who collaborate in this ISN"]])
 
-(defn info-isn []
+(defn info-network []
   [:ui.c/alert-success {}
    [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
    [:p "Detail on the ISN participants and network mirror sites are provided here"]])
@@ -169,7 +169,7 @@
    [:div.container-fluid
     [:div.row
      (when (= site-type "mirror") [:div.col-lg-9 {:role "main"} (info-mirror)])
-     (when (= site-type "isn") [:div.col-lg-9 {:role "main"} (info-isn)])
+     (when (= site-type "network") [:div.col-lg-9 {:role "main"} (info-network)])
      [:div.col-lg-9 {:role "main"} content]]]
    [:div.container-fluid
     [:footer
@@ -290,13 +290,13 @@
 (defn dashboard [{:keys [query-params session]}]
   (if (or (:user session) (dev?))
     (page session head body
-          (when (some #{site-type} #{"site" "mirror"})
+          (when (some #{site-type} #{"participant" "mirror"})
             [:ui.l/card {} "Latest signals"
              [:form {:action "/dashboard" :method "get" :name "filterform"}
               [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
              [:br]
              (signals-list sorted-instant-edn signal-list-item query-params)])
-          (when (= site-type "isn")
+          (when (= site-type "network")
             [:div
              [:ui.l/card {} "ISN Details"
               [:ul
@@ -342,9 +342,9 @@
   (page session head body
         (if (or (:user session) (dev?))
           (condp = site-type
-            "site" (html->hiccup (slurp "resources/public/html/about-site.html"))
+            "participant" (html->hiccup (slurp "resources/public/html/about-site.html"))
             "mirror" (html->hiccup (slurp "resources/public/html/about-mirror.html"))
-            "isn" (html->hiccup (slurp "resources/public/html/about-isn.html")))
+            "network" (html->hiccup (slurp "resources/public/html/about-isn.html")))
           (login-view))))
 
 (defn documentation [{:keys [session]}]
