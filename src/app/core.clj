@@ -302,8 +302,8 @@
               [:ul
                [:li (str "Name: " (:site-name cfg))]
                [:li (str "Purpose: " (:isn-purpose cfg))]]]
-             [:ui.l/card {}  "ISN participants" (signals-list participants-edn signal-list-item query-params)]
-             [:ui.l/card {}  "ISN mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
+             [:ui.l/card {}  "ISN Participants" (signals-list participants-edn signal-list-item query-params)]
+             [:ui.l/card {}  "ISN Mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
     (page session head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session}]
