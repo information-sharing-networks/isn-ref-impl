@@ -283,7 +283,7 @@
   (page session head body
         (if (or (:user session) (dev?))
           [:ui.l/card {} "Home"
-           [:p "This is an ISN Participant Site - part of an EoT BTD"]
+           [:p "This is an ISN Site - part of an EoT BTD"]
            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
           (login-view))))
 
