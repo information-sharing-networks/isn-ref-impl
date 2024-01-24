@@ -121,12 +121,6 @@
 
 (defn- selector [src path] (first (map text (select src path))))
 
-(defn- sse-stream-ready [event-chan ctx]
-  (let [{{uri :uri {client :client connection-uuid :connection-uuid} :path-params} :request} ctx]
-    ;(info :isn/sse-stream-ready "Starting SSE stream for client" client "connection-uuid" connection-uuid)
-    (swap! subscribers assoc (keyword (str client connection-uuid)) {:event-channel event-chan :uri uri})
-    (async/>!! event-chan {:name "log-msg" :data "Client has subscribed to ISN SSE stream"})))
-
 (defn- sse-send [msg] (doseq [[k v] @subscribers] (async/>!! (:event-channel v) {:name "isn-signal" :data msg})))
 
 ;;;; Components
@@ -465,6 +459,15 @@
          :headers {"Location" loc-hdr}
          :body "signal has been created"})
       {:status 500})))
+
+(defn- sse-stream-ready [event-chan {:keys [request]}]
+  (let [{uri :uri {client :client connection-uuid :connection-uuid} :path-params headers :headers} request
+        id (:id (token-header->id headers))]
+    (if (and (get-in request [:headers "authorization"]) (authcn? id))
+      (do 
+        (swap! subscribers assoc (keyword (str client connection-uuid)) {:event-channel event-chan :uri uri})
+        (async/>!! event-chan {:name "log-msg" :data "Client has subscribed to ISN SSE stream"}))
+      (async/>!! event-chan {:name "log-msg" :data "Error - client could not be subscribed to ISN SSE stream"}))))
 
 ;;;; Routes, service, server and app entry point.
 ;;;; ===========================================================================
