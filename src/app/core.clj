@@ -184,7 +184,7 @@
       [:small "This site is part of an " [:a {:href (:network-site cfg) :target "_blank"} "EoT ISN"] ", for support please email : "]
       [:small [:a {:name "support"} [:a {:href (str "mailto:" (:support-email cfg))} (:support-email cfg)]]]]
      [:p
-      [:small "Built using isn-toolkit v" (get-in cfg [:version :isn-toolkit]) ". View " [:a {:href "/privacy"} "privacy"] " information."]]]]
+      [:small "Built using isn-toolkit v" (get-in cfg [:version :isn-toolkit]) ". This software uses the " [:a {:href "https://opensource.org/license/mit/"} "MIT"] " licence. View " [:a {:href "/privacy"} "privacy"] " information."]]]]
    ;[:script {:src "//code.jquery.com/jquery.js"}]
    [:script {:src "/js/bootstrap.min.js"}]])
 
