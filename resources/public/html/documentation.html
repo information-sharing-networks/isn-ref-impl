@@ -213,6 +213,21 @@
                     </tr>
                 </tbody>
             </table>
+
+	    <h4 class="card-title">Receiving signals via Server Sent Events</h4>
+	    <p>As an ISN participant you can subscribe to a stream of Signal Server Sent Events. This will ensure you have access without polling to a sequence of signals you have not processed or received before.</p>
+	    <p>As with the API above each signal will have a correlation-id you can use to establish whether there is a chain of intelligence attached to the curent signal.</p>
+	    <p>The SSE stream endpoint requires a bearer token and two path parameters:</p>
+	    <ul>
+              <li>client - a client identifier which should be used by all SSE clients you deploy at your site (e.g. acm in the case of Acme</li>
+	      <li>connection-uid - a UUID which distinguishes a client you deploy from any other</li>
+	    </ul>
+	    <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/stream/sse/acme/a-long-uuid</code></pre>
+	    <p>If your subscription succeeds you will receive an SSE event confirming this with the following content:</p>
+	    <pre><code>event: log-msg
+data: Client has subscribed to ISN SSE stream</pre></code>
+	    <p>From now on whenever a signal is created on a site within the ISN you will receive an SSE event detailing it.</p>
+	    <p>TODO: currently all signals created within the network will be sent to you subscription filters are TBD</p>
         </div>
     </div>
 </div>
