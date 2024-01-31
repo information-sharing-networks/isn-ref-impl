@@ -417,7 +417,7 @@
     (if (and (get-in req [:headers "authorization"]) (authcn? id))
       (do
         (its/create pr-fs (str "/" (:permafrag post-data) ".edn") post-data)
-        (sse-send {:name "isn-signal" :data post-data})
+        (sse-send (json/write-str {:name "isn-signal" :data post-data}))
         (when (:mp-syndicate-to params)
           (let [synd-uri (str (:mp-syndicate-to params) "/webmention")
                 options {:headers (merge {"Authorization" token} form-enc)
