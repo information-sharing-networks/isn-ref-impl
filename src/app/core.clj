@@ -199,14 +199,8 @@
     [:div
      [:div
       [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
-     [:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) ", description : ")] obj-inner]
-     (when-not (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
-       [:div
-        [:b "Expires:"]
-        [:span.dt-end (:end sig)]
-        ", "
-        [:b "Priority : "]
-        [:span.h-review.p-rating (or (:priority sig) "N/A")]])
+     [:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) " - ")] obj-inner] 
+     [:div [:b "transport mode : "] (get-in sig [:payload :mode])]
      [:div
       [:b "Provider : "]
       [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
