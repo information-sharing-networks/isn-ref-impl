@@ -21,7 +21,7 @@
             [net.cgrand.enlive-html :refer [attr? attr-values html-resource select text]]
             [voxmachina.itstore.postrepo :as its]
             [voxmachina.itstore.postrepo-fs :as itsfile]
-            [ui.layout :refer [htm-tors html->hiccup page ses-tors]]
+            [ui.layout :refer [htm-tor html->hiccup page ses-tor]]
             [ui.components])
   (:import java.util.UUID))
 
@@ -32,17 +32,17 @@
 
 (def dt-fmt "dd-MM-yyyy HH:mm:ss")
 
-(def cfg (read-config "config.edn" {}))
+(def config (read-config "config.edn" {}))
 
-(def data-path (:data-path cfg))
+(def data-path (:data-path config))
 
 (def sig-path (str data-path "/signals"))
 
-(defn dev? [] (= (:environment cfg) "dev"))
+(defn dev? [] (= (:environment config) "dev"))
 
-(def site-root (:site-root cfg))
+(def site-root (:site-root config))
 
-(def site-type (:site-type cfg))
+(def site-type (:site-type config))
 
 (def pr-fs (itsfile/repo {:data-path data-path}))
 
@@ -67,23 +67,23 @@
 
 (def api-tors [(body-params)])
 
-(defn rel-root [] (:rel-root cfg)) ;; REVIEW: use function to provision for multi-tenancy
+(defn rel-root [] (:rel-root config)) ;; REVIEW: use function to provision for multi-tenancy
 
 (defn client-id [] (str (rel-root) "/"))
 
 (defn redirect-uri [] (str (client-id) "indieauth-redirect"))
 
-(defn login-uri [] (:indielogin-uri cfg))
+(defn login-uri [] (:indielogin-uri config))
 
 (defn- validate-token [token]
   (let [rsp @(client/get "https://tokens.indieauth.com/token" {:headers {"Authorization" token "Accept" "application/json"}})]
     (if (dev?)
-      {"me" (:dev-site cfg)}
+      {"me" (:dev-site config)}
       (json/read-str (:body rsp)))))
 
 (defn- authcn? [id]
   (let [host (trim (:host (uri id)))
-        ids (:authcn-ids cfg)]
+        ids (:authcn-ids config)]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn- arr-syntax-key [m] (first (for [[k v] m :when (.contains (name k) "category")] v)))
@@ -126,7 +126,7 @@
 ;;;; Components
 ;;;; ===========================================================================
 
-(defn head []
+(defn head [{:keys [cfg] :as req}]
           [:html [:head
               [:meta {:charset "utf-8"}]
               [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
@@ -140,7 +140,7 @@
               [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
               [:title (:site-name cfg)]]])
 
-(defn navbar [{:keys [token user]}]
+(defn navbar [{:keys [cfg token user]}]
   [:nav.navbar.navbar-expand-md.navbar-light.fixed-top.bg-light
    [:div.container-fluid
     [:a.navbar-brand {:href "/"} (:site-name cfg)]
@@ -163,7 +163,7 @@
    [:p "This is an Ecosystem of Trust demonstrator ISN Network Site"]
    [:p "Detail on the ISN participants and network mirror sites are provided here"]])
 
-(defn body [session & content]
+(defn body [{:keys [cfg session] :as req} & content]
   [:body
    (navbar session)
    [:div.container-fluid
@@ -199,7 +199,7 @@
     [:div
      [:div
       [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
-     [:div.p-name [:b "Object : "] obj-inner]
+     [:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) ", description : ")] obj-inner]
      (when-not (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
        [:div
         [:b "Expires:"]
@@ -279,17 +279,17 @@
 ;;;; Views
 ;;;; ===========================================================================
 
-(defn home [{:keys [session]}]
-  (page session head body
+(defn home [{:keys [session] :as req}]
+  (page req head body
         (if (or (:user session) (dev?))
           [:ui.l/card {} "Home"
            [:p "This is an ISN Site - part of an EoT BTD"]
            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
           (login-view))))
 
-(defn dashboard [{:keys [query-params session]}]
+(defn dashboard [{:keys [cfg query-params session] :as req}]
   (if (or (:user session) (dev?))
-    (page session head body
+    (page req head body
           (when (some #{site-type} #{"participant" "mirror"})
             [:ui.l/card {} "Latest signals"
              [:form {:action "/dashboard" :method "get" :name "filterform"}
@@ -304,18 +304,18 @@
                [:li (str "Purpose: " (:isn-purpose cfg))]]]
              [:ui.l/card {}  "ISN Participants" (signals-list participants-edn signal-list-item query-params)]
              [:ui.l/card {}  "ISN Mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
-    (page session head body (login-view))))
+    (page req head body (login-view))))
 
-(defn account [{{:keys [token user] :as session} :session}]
+(defn account [{{:keys [token user] :as session} :session} req]
   (if (or user (dev?))
-    (page session head body
+    (page req head body
           [:ui.l/card {}  "Account"
            [:h3 "API Token"]
            [:p.wrap-break token]])
-    (page session head body (login-view))))
+    (page req head body (login-view))))
 
-(defn login [{:keys [session]}]
-  (page session head body
+(defn login [{:keys [session] :as req}]
+  (page req head body
         [:h2  "Login"]
         [:form {:action "https://indieauth.com/auth" :method "get"}
          [:label {:for "url"} "Web Address "]
@@ -329,7 +329,7 @@
 ;; The means by which we authenticate and associate a user and token into our session
 ;; https://indieweb.org/obtaining-an-access-token
 ;; https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code
-(defn indieauth-redirect [{:keys [path-params query-params session]}]
+(defn indieauth-redirect [{:keys [cfg path-params query-params session]}]
   (let [code (:code query-params)
         rsp @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
@@ -338,8 +338,8 @@
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
-(defn about [{:keys [session]}]
-  (page session head body
+(defn about [{:keys [session] :as req}]
+  (page req head body
         (if (or (:user session) (dev?))
           (condp = site-type
             "participant" (html->hiccup (slurp "resources/public/html/about-site.html"))
@@ -347,15 +347,15 @@
             "network" (html->hiccup (slurp "resources/public/html/about-isn.html")))
           (login-view))))
 
-(defn documentation [{:keys [session]}]
-  (page session head body
+(defn documentation [{:keys [session] :as req}]
+  (page req head body
         (if (or (:user session) (dev?))
           (html->hiccup (slurp "resources/public/html/documentation.html"))
           (login-view))))
 
-(defn privacy [{:keys [session]}] (page session head body (html->hiccup (slurp "resources/public/html/privacy.html"))))
+(defn privacy [{:keys [session] :as req}] (page req head body (html->hiccup (slurp "resources/public/html/privacy.html"))))
 
-(defn signal [{:keys [path-params]}] (page nil head body (signal-item (:signal-id path-params))))
+(defn signal [{:keys [path-params] :as req}] (page nil head body (signal-item (:signal-id path-params))))
 
 ;;;; API
 ;;;; ===========================================================================
@@ -378,7 +378,7 @@
         now (jt/local-date)
         published (jt/format "yyyy-MM-dd" now)]
     (-> {}
-        (assoc :provider (:author cfg))
+        (assoc :provider (:author config))
         (assoc :publishedDate published)
         (assoc :publishedDateTime (.toString inst)))))
 
@@ -401,7 +401,7 @@
                         (assoc :correlation-id corr-id)
                         (assoc :signalId sig-id)
                         (assoc :start (if (blank? (:start m)) (str (jt/instant)) (str->inst (:start m))))
-                        (assoc :end (if (blank? (:end m)) (str (jt/instant (jt/plus (jt/instant) (jt/days (:days-from-now cfg))))) (str->inst (:end m))))
+                        (assoc :end (if (blank? (:end m)) (str (jt/instant (jt/plus (jt/instant) (jt/days (:days-from-now config))))) (str->inst (:end m))))
                         (assoc :payload map-data))]
     primary-map))
 
@@ -473,30 +473,31 @@
 ;;;; ===========================================================================
 
 (def routes
-  #{["/"                                    :get  (conj ses-tors `home)]
-    ["/login"                               :get  (conj ses-tors `login)]
-    ["/indieauth-redirect"                  :get  (conj ses-tors `indieauth-redirect)]
-    ["/dashboard"                           :get  (conj ses-tors `dashboard)]
-    ["/account"                             :get  (conj ses-tors `account)]
-    ["/signals/:signal-id"                  :get  (conj htm-tors `signal)]
-    ["/about"                               :get  (conj ses-tors `about)]
-    ["/documentation"                       :get  (conj ses-tors `documentation)]
-    ["/privacy"                             :get  (conj htm-tors `privacy)]
+  #{["/"                                    :get  (conj ses-tor `home)]
+    ["/login"                               :get  (conj ses-tor `login)]
+    ["/indieauth-redirect"                  :get  (conj ses-tor `indieauth-redirect)]
+    ["/dashboard"                           :get  (conj ses-tor `dashboard)]
+    ["/account"                             :get  (conj ses-tor `account)]
+    ["/signals/:signal-id"                  :get  (conj htm-tor `signal)]
+    ["/about"                               :get  (conj ses-tor `about)]
+    ["/documentation"                       :get  (conj ses-tor `documentation)]
+    ["/privacy"                             :get  (conj htm-tor `privacy)]
     ["/micropub"                            :post (conj api-tors `micropub)]
     ["/webmention"                          :post (conj api-tors `webmention)]
     ["/signals"                             :get  (conj api-tors `signals)]
     ["/status"                              :get status :route-name :status]
     ["/stream/sse/:client/:connection-uuid" :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
 
-(def service-map {::http/secure-headers {:content-security-policy-settings (:csp-settings cfg)}
-                  ::http/routes            routes
-                  ::http/type              :jetty
-                  ::http/resource-path     "public"
-                  ::http/host              "0.0.0.0"
-                  ::http/port              (Integer. (or (:port cfg) 5001))
-                  ::http/container-options {:h2c? true :h2?  false :ssl? false}})
+(defn service-map [{:keys [csp-settings port]}]
+  {::http/secure-headers {:content-security-policy-settings csp-settings}
+   ::http/routes            routes
+   ::http/type              :jetty
+   ::http/resource-path     "public"
+   ::http/host              "0.0.0.0"
+   ::http/port              (Integer. (or port 5001))
+   ::http/container-options {:h2c? true :h2?  false :ssl? false}})
 
-(defn validate-config []
+(defn validate-config [cfg]
   (when-not (s/valid? ::config cfg)
     (s/explain ::config cfg)
     (throw (ex-info "Invalid configuration." (s/explain-data ::config cfg))))
@@ -504,8 +505,8 @@
 
 ;; App entry point
 (defn -main [_]
-  (validate-config)
-  (info :isn/main (str "starting ISN Toolkit instance v" (get-in cfg [:version :isn-toolkit])))
-  (info :isn/main (str "site type : " (:site-type cfg)))
-  (info :isn/main (str "data-path : " (:data-path cfg)))
-  (-> service-map http/create-server http/start))
+  (validate-config config)
+  (info :isn/main (str "starting ISN Toolkit instance v" (get-in config [:version :isn-toolkit])))
+  (info :isn/main (str "site type : " (:site-type config)))
+  (info :isn/main (str "data-path : " (:data-path config)))
+  (-> (service-map config) http/create-server http/start))
