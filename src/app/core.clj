@@ -349,7 +349,7 @@
 
 (defn privacy [{:keys [session] :as req}] (page req head body (html->hiccup (slurp "resources/public/html/privacy.html"))))
 
-(defn signal [{:keys [path-params] :as req}] (page nil head body (signal-item (:signal-id path-params))))
+(defn signal [{:keys [path-params] :as req}] (page req head body (signal-item (:signal-id path-params))))
 
 ;;;; API
 ;;;; ===========================================================================
