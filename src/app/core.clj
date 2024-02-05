@@ -90,7 +90,7 @@
 
 (defn file->edn [file] (->> file slurp edn/read-string))
 
-(defn make-filter [[k v]] (filter #(re-find (re-pattern v) (k %))))
+(defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
   (let [xs-files   (filter #(.isFile %) (file-seq (file path)))
