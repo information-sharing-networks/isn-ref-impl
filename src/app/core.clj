@@ -93,11 +93,15 @@
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
-  (let [xs-files   (filter #(.isFile %) (file-seq (file path)))
+  (let [{:keys [from to] :or {from nil to nil}} filters
+        xs-files   (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
         current-xs (remove #(jt/before? (jt/instant (:end %)) (jt/instant)) xs-edn)
-        fs-xs (try (sequence (reduce comp (map make-filter filters)) current-xs) (catch Exception e  current-xs))
-        sigs (if api? (map #(dissoc % :permafrag :summary) fs-xs) fs-xs)]
+        fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to))) current-xs) (catch Exception e  current-xs))
+        xs (if (and from to)
+             (remove #(or (jt/before? (jt/local-date (:publishedDate %)) (jt/local-date from)) (jt/after? (jt/local-date (:publishedDate %)) (jt/local-date to))) fs-xs)
+             fs-xs)
+        sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)]
     (group-by :correlation-id sigs)))
 
 (defn- str->inst [x]
