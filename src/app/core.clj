@@ -127,22 +127,26 @@
 
 (defn- sse-send [msg] (doseq [[k v] @subscribers] (async/>!! (:event-channel v) {:name "isn-signal" :data msg})))
 
+;;;; Service interceptors
+;;;; ===========================================================================
+(def cfg-tor {:name :cfg-tor :enter (fn [context] (assoc-in context [:request :cfg] config))})
+
 ;;;; Components
 ;;;; ===========================================================================
 
 (defn head [{:keys [cfg] :as req}]
-          [:html [:head
-              [:meta {:charset "utf-8"}]
-              [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
-              [:link {:rel "authorization_endpoint" :href "https://indieauth.com/auth"}]
-              [:link {:rel "token_endpoint" :href "https://tokens.indieauth.com/token"}]
-              [:link {:rel "micropub" :href (str rel-root "/micropub")}]
-              [:link {:rel "webmention" :href (str (:rel-root cfg) "/webmention")}]
-              [:link {:rel "microsub" :href (:microsub-uri cfg)}]
-              [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap.min.css"}]
-              [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap-icons.css"}]
-              [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
-              [:title (:site-name cfg)]]])
+  [:html [:head
+   [:meta {:charset "utf-8"}]
+   [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
+   [:link {:rel "authorization_endpoint" :href "https://indieauth.com/auth"}]
+   [:link {:rel "token_endpoint" :href "https://tokens.indieauth.com/token"}]
+   [:link {:rel "micropub" :href (str rel-root "/micropub")}]
+   [:link {:rel "webmention" :href (str (:rel-root cfg) "/webmention")}]
+   [:link {:rel "microsub" :href (:microsub-uri cfg)}]
+   [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap.min.css"}]
+   [:link {:rel "stylesheet" :type "text/css" :href "/css/bootstrap-icons.css"}]
+   [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
+   [:title (:site-name cfg)]]])
 
 (defn navbar [{:keys [cfg token user]}]
   [:nav.navbar.navbar-expand-md.navbar-light.fixed-top.bg-light
@@ -471,18 +475,18 @@
 ;;;; ===========================================================================
 
 (def routes
-  #{["/"                                    :get  (conj ses-tor `home)]
-    ["/login"                               :get  (conj ses-tor `login)]
-    ["/indieauth-redirect"                  :get  (conj ses-tor `indieauth-redirect)]
-    ["/dashboard"                           :get  (conj ses-tor `dashboard)]
-    ["/account"                             :get  (conj ses-tor `account)]
-    ["/signals/:signal-id"                  :get  (conj htm-tor `signal)]
-    ["/about"                               :get  (conj ses-tor `about)]
-    ["/documentation"                       :get  (conj ses-tor `documentation)]
-    ["/privacy"                             :get  (conj htm-tor `privacy)]
-    ["/micropub"                            :post (conj api-tors `micropub)]
-    ["/webmention"                          :post (conj api-tors `webmention)]
-    ["/signals"                             :get  (conj api-tors `signals)]
+  #{["/"                                    :get  (conj ses-tor `cfg-tor `home)]
+    ["/login"                               :get  (conj ses-tor `cfg-tor `login)]
+    ["/indieauth-redirect"                  :get  (conj ses-tor `cfg-tor `indieauth-redirect)]
+    ["/dashboard"                           :get  (conj ses-tor `cfg-tor `dashboard)]
+    ["/account"                             :get  (conj ses-tor `cfg-tor `account)]
+    ["/signals/:signal-id"                  :get  (conj htm-tor `cfg-tor `signal)]
+    ["/about"                               :get  (conj ses-tor `cfg-tor `about)]
+    ["/documentation"                       :get  (conj ses-tor `cfg-tor `documentation)]
+    ["/privacy"                             :get  (conj htm-tor `cfg-tor `privacy)]
+    ["/micropub"                            :post (conj api-tors `cfg-tor `micropub)]
+    ["/webmention"                          :post (conj api-tors `cfg-tor `webmention)]
+    ["/signals"                             :get  (conj api-tors `cfg-tor `signals)]
     ["/status"                              :get status :route-name :status]
     ["/stream/sse/:client/:connection-uuid" :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
 
