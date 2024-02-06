@@ -148,7 +148,7 @@
    [:link {:rel "stylesheet" :type "text/css" :href "/css/style.css"}]
    [:title (:site-name cfg)]]])
 
-(defn navbar [{:keys [cfg token user]}]
+(defn navbar [{:keys [cfg session]}]
   [:nav.navbar.navbar-expand-md.navbar-light.fixed-top.bg-light
    [:div.container-fluid
     [:a.navbar-brand {:href "/"} (:site-name cfg)]
@@ -159,7 +159,7 @@
       [:li.nav-item [:a.nav-link {:href "/dashboard"} "Dashboard"]]
       [:li.nav-item [:a.nav-link {:href "/about"} "About"]]
       [:li.nav-item [:a.nav-link {:href "/documentation"} "Documentation"]]
-      (when user [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
+      (when (:user session) [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
 
 (defn info-mirror []
   [:ui.c/alert-info {}
@@ -173,7 +173,7 @@
 
 (defn body [{:keys [cfg session] :as req} & content]
   [:body
-   (navbar session)
+   (navbar req)
    [:div.container-fluid
     [:div.row
      (when (= site-type "mirror") [:div.col-lg-9 {:role "main"} (info-mirror)])
@@ -308,7 +308,7 @@
              [:ui.l/card {}  "ISN Mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
     (page req head body (login-view))))
 
-(defn account [{{:keys [token user] :as session} :session} req]
+(defn account [{{:keys [token user] :as session} :session :as req}]
   (if (or user (dev?))
     (page req head body
           [:ui.l/card {}  "Account"
