@@ -61,7 +61,8 @@
 (s/def ::authcn-ids (s/coll-of string? :kind set? :min-count 1 :distinct true))
 (s/def ::data-path s-exists?)
 (s/def ::dev-site s-uri?)
-(s/def ::config (s/keys :req-un [::site-name ::site-root ::authcn-ids ::data-path ::dev-site]))
+(s/def ::indieauth-token-uri s-uri?)
+(s/def ::config (s/keys :req-un [::site-name ::site-root ::authcn-ids ::indieauth-token-uri ::data-path ::dev-site]))
 
 (defn- status [req] {:status 200 :body "Service is running"})
 
