@@ -76,9 +76,9 @@
 (defn login-uri [] (:indielogin-uri config))
 
 (defn- validate-token [token]
-  (let [rsp @(client/get "https://tokens.indieauth.com/token" {:headers {"Authorization" token "Accept" "application/json"}})]
-    (if (dev?)
-      {"me" (:dev-site config)}
+  (if (dev?)
+    {"me" (:dev-site config)}
+    (let [rsp @(client/get (:indieauth-token-uri config) {:headers {"Authorization" token "Accept" "application/json"}})] 
       (json/read-str (:body rsp)))))
 
 (defn- authcn? [id]
@@ -139,7 +139,7 @@
    [:meta {:charset "utf-8"}]
    [:meta {:name "viewport" :content "width=device-width, initial-scale=1.0"}]
    [:link {:rel "authorization_endpoint" :href "https://indieauth.com/auth"}]
-   [:link {:rel "token_endpoint" :href "https://tokens.indieauth.com/token"}]
+   [:link {:rel "token_endpoint" :href (:indieauth-token-uri cfg)}]
    [:link {:rel "micropub" :href (str rel-root "/micropub")}]
    [:link {:rel "webmention" :href (str (:rel-root cfg) "/webmention")}]
    [:link {:rel "microsub" :href (:microsub-uri cfg)}]
@@ -333,7 +333,7 @@
 ;; https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code
 (defn indieauth-redirect [{:keys [cfg path-params query-params session]}]
   (let [code (:code query-params)
-        rsp @(client/post "https://tokens.indieauth.com/token" {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
+        rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
         user (:host (uri me))        ]
     (if (some #{user} (:authcn-ids cfg))

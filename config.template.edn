@@ -10,6 +10,7 @@
  :site-type "participant" ; may be participant (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or network (network entry-point site)
  :days-from-now 7
  :indieauth-email "your@mail.com"
+ :indieauth-token-uri "https://tokens.indieauth.com/token"
  :indielogin-uri "https://some-indielogin.tld/auth" ; uri for your preferred indielogin svc
  :redirect-uri "/your-redirect-uri" ; used to point to the URI for your protected content
  :data-path "" ; used to point to a data directory somewhere on disk e.g. /home/you/.isn.isn-name/site-acme/data
