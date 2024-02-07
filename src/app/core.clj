@@ -99,7 +99,7 @@
         current-xs (remove #(jt/before? (jt/instant (:end %)) (jt/instant)) xs-edn)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to))) current-xs) (catch Exception e  current-xs))
         xs (if (and from to)
-             (remove #(or (jt/before? (jt/local-date (:publishedDate %)) (jt/local-date from)) (jt/after? (jt/local-date (:publishedDate %)) (jt/local-date to))) fs-xs)
+             (remove #(or (jt/before? (jt/instant (:publishedDateTime %)) (jt/instant from)) (jt/after? (jt/instant (:publishedDateTime %)) (jt/instant to))) fs-xs)
              fs-xs)
         sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)]
     (group-by :correlation-id sigs)))
