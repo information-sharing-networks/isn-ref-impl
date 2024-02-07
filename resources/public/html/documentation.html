@@ -123,9 +123,9 @@
                You can filter signals using query parameters. Filtering is a flexible mechanism an example is provided below combining a number of filters.
             </p>
             <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?provider=x&countryCode=y</code></pre>
-	    <p>It is possible to filter signals to only include those with a published date between two dates. These date range filters can be stacked on top of standard filters as documented previously.</p>
-	    <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?from=2024-02-02\&to=2024-02-03</code></pre>
-	    <p>The above example will return signals published on the 2nd and 3rd Feb inclusive. The &amp; is escaped as the curl command is run in the terminal.</p>
+	    <p>It is possible to filter signals to only include those with a published date-time between two date-times. These date range filters can be stacked on top of standard filters as documented previously.</p>
+	    <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?from=2024-02-02T07:00.00Z\&to=2024-02-02T08:00:00Z</code></pre>
+	    <p>The above example will return signals published on the 2nd Feb between 07:00 and 08:00 inclusive. The &amp; is escaped as the curl command is run in the terminal.</p>
 
             <h4 class="card-title">Creating a signal</h4>
             <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
