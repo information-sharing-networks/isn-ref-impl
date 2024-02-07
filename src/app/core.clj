@@ -380,7 +380,7 @@
         now (jt/local-date)
         published (jt/format "yyyy-MM-dd" now)]
     (-> {}
-        (assoc :provider (:author config))
+        (assoc :provider (:provider m))
         (assoc :publishedDate published)
         (assoc :publishedDateTime (.toString inst)))))
 
@@ -412,7 +412,8 @@
 (defn- micropub [req]
   (let [params (keywordize-keys (:params req))
         {id :id token :token} (token-header->id (:headers req))
-        post-data (dispatch-post params)
+        provider (trim (:host (uri id)))
+        post-data (dispatch-post (assoc params :provider provider))
         loc-hdr (str site-root "/" (:permafrag post-data))]
     (debug :isn/micropub {:params params})
     (debug :isn/micropub {:post-data post-data})
