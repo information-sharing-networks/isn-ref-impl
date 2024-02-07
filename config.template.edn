@@ -5,7 +5,6 @@
  :site-root "http://localhost:5001"
  :rel-root "https://your.domain.tld" ; used as a prefix before rel links
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
- :author "signals.my-example.xyz" ; typically set to the sites domain e.g. 'signals.my-example.xyz'
  :authcn-ids #{} ; used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
  :site-type "participant" ; may be participant (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or network (network entry-point site)
@@ -15,7 +14,7 @@
  :redirect-uri "/your-redirect-uri" ; used to point to the URI for your protected content
  :data-path "" ; used to point to a data directory somewhere on disk e.g. /home/you/.isn.isn-name/site-acme/data
  :environment "dev" ; setting the env to dev will remove the need to supply a valid token
- :dev-site "https://example.com" ; default site to use in token lookup site resolution in dev mode  e.g. :dev-site "https://example.com"
+ :dev-site "https://signals-provider.my-example.xyz" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
  :network-site "https://some-network-site.tld" ; the URI for the ISN network site or entry point - all participant sites and mirrors should be able to link back to it
  :csp-settings {:connect-src #ref [:site-root]
