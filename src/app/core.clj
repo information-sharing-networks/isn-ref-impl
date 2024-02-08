@@ -102,7 +102,7 @@
         xs (if (and from to)
              (remove #(or (before? (instant (:publishedDateTime %)) (instant from)) (after? (instant (:publishedDateTime %)) (instant to))) fs-xs)
              fs-xs)
-        sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)]
+        sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)] ; REVIEW: sort signal by pubish date time somewhere?
     (group-by :correlation-id sigs)))
 
 (defn- str->inst [x]
