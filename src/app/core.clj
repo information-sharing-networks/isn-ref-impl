@@ -94,7 +94,7 @@
 (defn make-category-filter [] ())
 
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
-  (let [{:keys [from to] :or {from nil to nil}} filters
+  (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
         current-xs (remove #(before? (instant (:end %)) (instant)) xs-edn)
@@ -102,7 +102,9 @@
         xs (if (and from to)
              (remove #(or (before? (instant (:publishedDateTime %)) (instant from)) (after? (instant (:publishedDateTime %)) (instant to))) fs-xs)
              fs-xs)
-        sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)] ; REVIEW: sort signal by pubish date time somewhere?
+        cat-xs (if category (filter #(some (:category %) #{category}) xs) xs)
+        isn-xs (if isn (filter #(some (:category %) #{isn}) cat-xs ) cat-xs)
+        sigs (if api? (map #(dissoc % :permafrag :summary) isn-xs) isn-xs)] ; REVIEW: sort signal by pubish date time somewhere?
     (group-by :correlation-id sigs)))
 
 (defn- str->inst [x]
