@@ -87,8 +87,6 @@
         ids (:authcn-ids config)]
     (and (not-empty ids) host (some #{host} ids))))
 
-(defn- arr-syntax-key [m] (first (for [[k v] m :when (.contains (name k) "category")] v)))
-
 (defn file->edn [file] (->> file slurp edn/read-string))
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
@@ -113,14 +111,14 @@
 (defn- participants-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(= (:category %) "isn-participant") xs-edn)
+        xs-isn (filter #(some (:category %) #{"isn-membership-participant-update" "isn-mirror"}) xs-edn)
         xs (distinct-by #(% :object) xs-isn)]
     (group-by :correlation-id xs)))
 
 (defn- mirrors-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(= (:category %) "isn-mirror") xs-edn)
+        xs-isn (filter #(some (:category %) #{"isn-membership-mirror-update"}) xs-edn)
         xs (distinct-by #(% :name) xs-isn)]
     (group-by :correlation-id xs)))
 
@@ -202,7 +200,7 @@
         [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]])
 
 (defn signal-list-item [sig]
-  (let [obj-inner (if (some #{(:category sig)} #{"isn-participant" "isn-mirror"})
+  (let [obj-inner (if (some (:category sig) #{"isn-participant" "isn-mirror"})
                     [:a {:href (str "https://" (:object sig)) :target "_blank"} (:object sig)]
                     (:object sig))]
     [:div
@@ -245,7 +243,7 @@
          [:h2.p-name (:object sig)]]
         [:div
          [:h3 "Signal payload"]
-         (when-not (= (:category sig) "isn")
+         (when-not (some (:category sig) #{"isn"})
            (for [[k v] (:payload sig)]
              [:div
               [:b (str (name k) " : ")]
@@ -260,7 +258,7 @@
           [:div
            [:b "Correlation ID: "]
            [:span.workflow-correlation (:correlation-id sig)]]]]
-        (when-not (= (:category sig) "isn")
+        (when-not (some (:category sig) #{"isn"})
           [:div
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
            [:div.h-review
@@ -390,13 +388,13 @@
 
 (defmethod dispatch-post :h [m] ;; REVIEW: currently defaults to event post type - do we need notes?
   (debug :isn-site/dispatch-post-event {})
-  (let [cat (arr-syntax-key m)
+  (let [cat (:category m)
         map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
         corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
         sig-id (str (UUID/randomUUID))
         post (make-post m)
         primary-map (-> post
-                        (assoc :category cat)
+                        (assoc :category (if (vector? cat) (into #{} cat) (if (nil? cat) nil (conj #{} cat))))
                         (assoc :permafrag (str "signals/" (str (replace (:publishedDate post) "-" "") "-" (first (split  corr-id #"-")) "-" (first (split  sig-id #"-")))))
                         (assoc :object (:name m))
                         (assoc :predicate (:summary m))
