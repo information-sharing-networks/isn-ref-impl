@@ -12,7 +12,7 @@
             [io.pedestal.http.sse :as sse]
             [io.pedestal.log :refer [debug info]]
             [clojure.core.async :as async]
-            [java-time.api :as jt]
+            [java-time.api :refer [after? before? days format instant local-date local-date-time plus zoned-date-time]]
             [medley.core :refer [distinct-by]]
             [ring.util.response :refer [redirect]]
             [org.httpkit.client :as client]
@@ -91,22 +91,24 @@
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
+(defn make-category-filter [] ())
+
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
   (let [{:keys [from to] :or {from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        current-xs (remove #(jt/before? (jt/instant (:end %)) (jt/instant)) xs-edn)
-        fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to))) current-xs) (catch Exception e  current-xs))
+        current-xs (remove #(before? (instant (:end %)) (instant)) xs-edn)
+        fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
         xs (if (and from to)
-             (remove #(or (jt/before? (jt/instant (:publishedDateTime %)) (jt/instant from)) (jt/after? (jt/instant (:publishedDateTime %)) (jt/instant to))) fs-xs)
+             (remove #(or (before? (instant (:publishedDateTime %)) (instant from)) (after? (instant (:publishedDateTime %)) (instant to))) fs-xs)
              fs-xs)
         sigs (if api? (map #(dissoc % :permafrag :summary) xs) xs)]
     (group-by :correlation-id sigs)))
 
 (defn- str->inst [x]
   (if (includes? x "T")
-    (str (jt/instant x))
-    (str (jt/instant (jt/zoned-date-time (jt/local-date-time dt-fmt x) "UTC")))))
+    (str (instant x))
+    (str (instant (zoned-date-time (local-date-time dt-fmt x) "UTC")))))
 
 (defn- participants-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
@@ -375,9 +377,9 @@
       {:status 500 :body "There was a problem fulfilling your request"})))
 
 (defn- make-post [m]
-  (let [inst (jt/instant)
-        now (jt/local-date)
-        published (jt/format "yyyy-MM-dd" now)]
+  (let [inst (instant)
+        now (local-date)
+        published (format "yyyy-MM-dd" now)]
     (-> {}
         (assoc :provider (:provider m))
         (assoc :publishedDate published)
@@ -401,8 +403,8 @@
                         (assoc :summary (str (:name m)  " " (:summary m)))
                         (assoc :correlation-id corr-id)
                         (assoc :signalId sig-id)
-                        (assoc :start (if (blank? (:start m)) (str (jt/instant)) (str->inst (:start m))))
-                        (assoc :end (if (blank? (:end m)) (str (jt/instant (jt/plus (jt/instant) (jt/days (:days-from-now config))))) (str->inst (:end m))))
+                        (assoc :start (if (blank? (:start m)) (str (instant)) (str->inst (:start m))))
+                        (assoc :end (if (blank? (:end m)) (str (instant (plus (instant) (days (:days-from-now config))))) (str->inst (:end m))))
                         (assoc :payload map-data))]
     primary-map))
 
@@ -434,8 +436,8 @@
 (defn- webmention [req]
   (let [{id :id token :token} (token-header->id (:headers req))
         params (keywordize-keys (:params req))
-        now (jt/local-date)
-        published (jt/format "yyyy-MM-dd" now)
+        now (local-date)
+        published (format "yyyy-MM-dd" now)
         date-pathfrag (replace published "-" "")
         u-frag (first (split  (str (UUID/randomUUID)) #"-"))
         permafrag (str "signals/" date-pathfrag "-" u-frag)
