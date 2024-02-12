@@ -212,9 +212,8 @@
      [:ul
       (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys config))]
         [:li [:b k] ": " v])]
-     ;[:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) " - ")] obj-inner] 
-     ;[:div [:b "transport mode : "] (get-in sig [:payload :mode])]
      [:div
+      (when (:show-eta config) [:div [:b "ETA : "] [:span (:start sig)]])
       [:b "Provider : "]
       [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
       ", "
@@ -273,6 +272,7 @@
            [:div
             [:b "Expires : "]
             [:span.dt-end (:end sig)]]])
+        (when (:show-eta config) [:div [:b "ETA : "] [:span (:start sig)]])
         [:div "Provider : "
          [:a.h-card.p-name {:href (str "https://" (:provider sig)) :target "_blank" :rel "author"} (:provider sig)]]
         [:div "Published : "
