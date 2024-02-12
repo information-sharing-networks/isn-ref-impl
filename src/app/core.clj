@@ -208,10 +208,12 @@
                     [:a {:href (str "https://" (:object sig)) :target "_blank"} (:object sig)]
                     (:object sig))]
     [:div
-     [:div
-      [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
-     [:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) " - ")] obj-inner] 
-     [:div [:b "transport mode : "] (get-in sig [:payload :mode])]
+     [:div [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
+     [:ul
+      (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys config))]
+        [:li [:b k] ": " v])]
+     ;[:div.p-name [:b (str "Commodity: " (get-in sig [:payload :cnCode]) " - ")] obj-inner] 
+     ;[:div [:b "transport mode : "] (get-in sig [:payload :mode])]
      [:div
       [:b "Provider : "]
       [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
@@ -247,7 +249,7 @@
          [:h2.p-name (:object sig)]]
         [:div
          [:h3 "Signal payload"]
-         (when-not (some (:category sig) #{"isn"})
+         (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
            (for [[k v] (:payload sig)]
              [:div
               [:b (str (name k) " : ")]
@@ -262,7 +264,7 @@
           [:div
            [:b "Correlation ID: "]
            [:span.workflow-correlation (:correlation-id sig)]]]]
-        (when-not (some (:category sig) #{"isn"})
+        (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
           [:div
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
            [:div.h-review

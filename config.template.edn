@@ -7,6 +7,7 @@
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
  :authcn-ids #{} ; used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
+ :show-list-payload-keys [:key1 :key2] ; Select domain specific keys for this site (if it is a participant site) to be displayed on the signals list (dashboard components)
  :site-type "participant" ; may be participant (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or network (network entry-point site)
  :days-from-now 7
  :indieauth-email "your@mail.com"
