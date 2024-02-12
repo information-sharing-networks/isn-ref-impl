@@ -249,36 +249,27 @@
         [:div
          [:h3 "Signal payload"]
          (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
-           (for [[k v] (:payload sig)]
-             [:div
-              [:b (str (name k) " : ")]
-              [:span v]]))
+           (for [[k v] (:payload sig)] [:div [:b (str (name k) " : ")] [:span v]]))
          [:h3 "Signal metadata"]
          [:b "Summary: "]
          [:span.p-summary (:summary sig)]]
         [:div.h-product
          [:div
-          [:b "Signal ID: "]
-          [:span.u-identified (:signalId sig)]
+          [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
           [:div
            [:b "Correlation ID: "]
            [:span.workflow-correlation (:correlation-id sig)]]]]
         (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
           [:div
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
-           [:div.h-review
-            [:b "Priority : "]
-            [:span.p-rating (:priority sig)]]
-           [:div
-            [:b "Expires : "]
-            [:span.dt-end (:end sig)]]])
+           [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
+           [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
         (when (:show-eta config) [:div [:b "ETA : "] [:span (:start sig)]])
         [:div "Provider : "
          [:a.h-card.p-name {:href (str "https://" (:provider sig)) :target "_blank" :rel "author"} (:provider sig)]]
         [:div "Published : "
          [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]
-        [:div "Category : "
-         [:span.p-category (:category sig)]]
+        [:div "Category : " [:span.p-category (:category sig)]]
         (when (:syndicated-from sig)
           [:div "Syndicated from : "
            [:a {:href (:syndicated-from sig)} (:provider sig)]])]]]))
