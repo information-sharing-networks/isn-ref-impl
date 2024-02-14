@@ -213,7 +213,7 @@
       (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys config))]
         [:li [:b k] ": " v])]
      [:div
-      (when (:show-eta config) [:div [:b "ETA : "] [:span (:start sig)]])
+      (when (and (:start sig) (:show-eta config)) [:div [:b "ETA : "] [:span (:start sig)]])
       [:b "Provider : "]
       [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
       ", "
@@ -264,7 +264,7 @@
            [:div "Provider mapping: " [:span (:providerMapping sig)]]
            [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
            [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
-        (when (:show-eta config) [:div [:b "ETA : "] [:span (:start sig)]])
+        (when (and (:start sig) (:show-eta config)) [:div [:b "ETA : "] [:span (:start sig)]])
         [:div "Provider : "
          [:a.h-card.p-name {:href (str "https://" (:provider sig)) :target "_blank" :rel "author"} (:provider sig)]]
         [:div "Published : "
@@ -398,10 +398,10 @@
                         (assoc :summary (str (:name m)  " " (:summary m)))
                         (assoc :correlation-id corr-id)
                         (assoc :signalId sig-id)
-                        (assoc :start (if (blank? (:start m)) (str (instant)) (str->inst (:start m))))
                         (assoc :end (if (blank? (:end m)) (str (instant (plus (instant) (days (:days-from-now config))))) (str->inst (:end m))))
-                        (assoc :payload map-data))]
-    primary-map))
+                        (assoc :payload map-data))
+        with-start-map (if-let [start (:start m)] (assoc primary-map :start (str->inst start)) primary-map)]
+    with-start-map))
 
 ;; https://www.w3.org/TR/micropub/
 ;; The means by which we publish a signal on to an ISN Site
