@@ -79,8 +79,7 @@
                 with content type application/x-www-form-urlencoded similar to the below.
             </p>
             <p>For example to onboard a new ISN participant</p>
-            <pre><code>curl -i -X POST -d h=event -d category=isn-participant -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added
-            to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
+            <pre><code>curl -i -X POST -d h=event -d category=isn-participant -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
             <p>For example to add a new mirror</p>
             <pre><code>curl -i -X POST -d h=event -d category=isn-mirror -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
         </div>
@@ -130,6 +129,7 @@
 	    <p>The above example will return signals published on the 2nd Feb between 07:00 and 08:00 inclusive. The &amp; is escaped as the curl command is run in the terminal.</p>
 
             <h4 class="card-title">Creating a signal</h4>
+	    <p>More detailed examples for creating signals (including optionality of fields) can be found in your ISN Github Repository in the 'sample-signal-creation' document. In this documentation we outline the basics.</p>
             <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
                 <a href="https://www.w3.org/TR/indieauth/" target="_blank">W3C Indieauth (OAuth-2)</a>. This ISN does
                 not trace contributed signals back to end users - part of what we
@@ -137,19 +137,12 @@
                 governance friction.
             </p>
             <p>
-                Once you have a bearer token you can use your ISN site Micropub endpoint to contribute signals via API
+                Once you have a bearer token (which you can retrieve using the 'account' tab in this site) you can use your ISN site Micropub endpoint to contribute signals via API
                 with content type application/x-www-form-urlencoded similar to the below.
             </p>
-            <pre><code>curl -i -X POST -d h=event -d "name=nuts" -d "summary=a predicate based on nuts" -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/micropub</code></pre>
+            <pre><code>curl -i -X POST -d h=event -d "name=nuts" -d "summary=a predicate based on nuts" -d category=domain -d category=isn@sample-isn.my-example.xyz -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/micropub</code></pre>
             <p>
-                This will create the simplest possible signal under the home page on your ISN site.
-            </p>
-            <pre><code>
-                curl -i -X POST -d h=event -d "name=nuts" -d "summary=a predicate based on nuts" -d mp-syndicate-to=https://a.isn-mirror.io -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/micropub
-            </code></pre>
-            <p>
-                This will create a simple signal under the signals page on your ISN site and send the same signal to an
-                optional mirror within your ISN.
+                This will create the simplest possible signal under the home page on your ISN site. Technically you could choose not to specify the first category but it is useful to annotate signals with domain specific categories. The second category is required and indicates that this signal is part of a specific ISN.
             </p>
             <p>
                 Possibilities for attributes are listed below:
@@ -182,18 +175,17 @@
                     <tr>
                         <td>description</td>
                         <td>Permits structured data to be passed in to the signal separated by a '^' character. E.G.
-                            cn-code=XXX^container-id=YYY^priority=5^correlation-id=5cd2e7db-8c56-4514-b6c5-bde69ce66604.
+                            cn-code=XXX^container-id=YYY^countryCode=GB^correlation-id=5cd2e7db-8c56-4514-b6c5-bde69ce66604.
                             N.B.
                             correlation-id is an important element of structured data if not present it is created by
-                            the system
-                            and is used to attach information to an existing signal 'thread'.
+                            the system,
+                            when passed in like in this example it is used to attach information to an existing signal 'thread'.
                         </td>
                         <td>Optional</td>
                     </tr>
                     <tr>
                         <td>start</td>
-                        <td>Every signal has a start date (ISO 8601) - if not provided in the API call the default is
-                            set to the current instant in time</td>
+                        <td>Signals may has a start date (ISO 8601) - this can be passed in per '2023-02-07T21:00:00Z'.</td>
                         <td>Optional</td>
                     </tr>
                     <tr>
