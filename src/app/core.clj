@@ -185,12 +185,8 @@
    [:div.container-fluid
     [:footer
      [:ul.list-horizontal
-      [:li
-       [:a.u-uid.u-url {:href "/"}
-        [:i.bi.bi-house-fill]]]
-      [:li
-       [:a.u-url {:rel "me" :href (:rel-me-github cfg)}
-        [:i.bi.bi-github]]]]
+      [:li [:a.u-uid.u-url {:href "/"} [:i.bi.bi-house-fill]]]
+      [:li [:a.u-url {:rel "me" :href (:rel-me-github cfg)} [:i.bi.bi-github]]]]
      [:p
       [:small "This site is part of an " [:a {:href (:network-site cfg) :target "_blank"} "EoT ISN"] ", for support please email : "]
       [:small [:a {:name "support"} [:a {:href (str "mailto:" (:support-email cfg))} (:support-email cfg)]]]]
@@ -238,18 +234,16 @@
 
 (defn signal-item [signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
-        sig (file->edn f-name)]
+        {:keys [category payload provider providerMapping publishedDateTime start syndicated-from] :as sig} (file->edn f-name)]
      [:div.card
-      [:div.card-header
-       [:h2 "Signal detail"]]
+      [:div.card-header [:h2 "Signal detail"]]
       [:div.card-body
        [:article.h-event
-        [:a.u-url {:href (str "/" (:permafrag sig))}
-         [:h2.p-name (:object sig)]]
+        [:a.u-url {:href (str "/" (:permafrag sig))} [:h2.p-name (:object sig)]]
         [:div
          [:h3 "Signal payload"]
-         (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
-           (for [[k v] (:payload sig)] [:div [:b (str (name k) " : ")] [:span v]]))
+         (when-not (some category #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
+           (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span v]]))
          [:h3 "Signal metadata"]
          [:b "Summary: "]
          [:span.p-summary (:summary sig)]]
@@ -257,22 +251,18 @@
          [:div
           [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
           [:div
-           [:b "Correlation ID: "]
-           [:span.workflow-correlation (:correlation-id sig)]]]]
-        (when-not (some (:category sig) #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
+           [:b "Correlation ID: "] [:span.workflow-correlation (:correlation-id sig)]]]]
+        (when-not (some category #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
           [:div
-           [:div "Provider mapping: " [:span (:providerMapping sig)]]
+           (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
            [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
            [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
-        (when (and (:start sig) (:show-eta config)) [:div [:b "ETA : "] [:span (:start sig)]])
+        (when (and start (:show-eta config)) [:div [:b "ETA : "] [:span start]])
         [:div "Provider : "
-         [:a.h-card.p-name {:href (str "https://" (:provider sig)) :target "_blank" :rel "author"} (:provider sig)]]
-        [:div "Published : "
-         [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]
-        [:div "Category : " [:span.p-category (:category sig)]]
-        (when (:syndicated-from sig)
-          [:div "Syndicated from : "
-           [:a {:href (:syndicated-from sig)} (:provider sig)]])]]]))
+         [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
+        [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
+        [:div "Category : " [:span.p-category category]]
+        (when syndicated-from [:div "Syndicated from : " [:a {:href syndicated-from} provider]])]]]))
 
 ;;;; Views
 ;;;; ===========================================================================
@@ -454,9 +444,7 @@
     (if (authcn? id)
       (do
         (its/create pr-fs (str "/" permafrag ".edn") sig-data)
-        {:status 201
-         :headers {"Location" loc-hdr}
-         :body "signal has been created"})
+        {:status 201 :headers {"Location" loc-hdr} :body "signal has been created"})
       {:status 500})))
 
 (defn- sse-stream-ready [event-chan {:keys [request]}]
