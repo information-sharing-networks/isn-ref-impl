@@ -395,20 +395,20 @@
 
 ;; https://www.w3.org/TR/micropub/
 ;; The means by which we publish a signal on to an ISN Site
-(defn- micropub [req]
-  (let [params (keywordize-keys (:params req))
+(defn- micropub [{:keys [json-params params] :as req}]
+  (let [params-kw (keywordize-keys (or json-params params))
         {id :id token :token} (token-header->id (:headers req))
         provider (trim (:host (uri id)))
-        post-data (dispatch-post (assoc params :provider provider))
+        post-data (dispatch-post (assoc params-kw :provider provider))
         loc-hdr (str site-root "/" (:permafrag post-data))]
-    (debug :isn/micropub {:params params})
+    (debug :isn/micropub {:params params-kw})
     (debug :isn/micropub {:post-data post-data})
     (if (and (get-in req [:headers "authorization"]) (authcn? id))
       (do
         (its/create pr-fs (str "/" (:permafrag post-data) ".edn") post-data)
         (sse-send (json/write-str {:name "isn-signal" :data post-data}))
-        (when (:mp-syndicate-to params)
-          (let [synd-uri (str (:mp-syndicate-to params) "/webmention")
+        (when (:mp-syndicate-to params-kw)
+          (let [synd-uri (str (:mp-syndicate-to params-kw) "/webmention")
                 options {:headers (merge {"Authorization" token} form-enc)
                          :form-params {:target synd-uri :source loc-hdr}}]
             @(client/post synd-uri options)))
