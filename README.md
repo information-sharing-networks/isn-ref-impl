@@ -4,6 +4,8 @@
 
 ### Development
 
+Wherever possible the style guide for the source code of this ISN reference implementation will follow a forked version of the [Clojure style guide](https://github.com/vox-machina/clojure-style-guide).
+
 #### Configuration
 
 **Creating the config.edn file**
