@@ -21,7 +21,7 @@
             [net.cgrand.enlive-html :refer [attr? attr-values html-resource select text]]
             [voxmachina.itstore.postrepo :as its]
             [voxmachina.itstore.postrepo-fs :as itsfile]
-            [ui.layout :refer [htm-tor html->hiccup page ses-tor]]
+            [ui.layout :refer [->201 ->400 ->401 ->500 htm-tor html->hiccup page ses-tor]]
             [ui.components])
   (:import java.util.UUID))
 
@@ -393,59 +393,23 @@
         with-start-map (if-let [start (:start m)] (assoc primary-map :start (str->inst start)) primary-map)]
     with-start-map))
 
+(defmethod dispatch-post :default [m] {})
+
 ;; https://www.w3.org/TR/micropub/
 ;; The means by which we publish a signal on to an ISN Site
-(defn- micropub [{:keys [json-params params] :as req}]
-  (let [params-kw (keywordize-keys (or json-params params))
-        {id :id token :token} (token-header->id (:headers req))
+(defn- micropub [{:keys [headers json-params params] :as req}]
+  (let [{:keys [mp-syndicated-to] :as params-kw} (keywordize-keys (or json-params params))
+        {id :id token :token} (token-header->id headers)
         provider (trim (:host (uri id)))
-        post-data (dispatch-post (assoc params-kw :provider provider))
-        loc-hdr (str site-root "/" (:permafrag post-data))]
-    (debug :isn/micropub {:params params-kw})
-    (debug :isn/micropub {:post-data post-data})
-    (if (and (get-in req [:headers "authorization"]) (authcn? id))
-      (do
-        (its/create pr-fs (str "/" (:permafrag post-data) ".edn") post-data)
-        (sse-send (json/write-str {:name "isn-signal" :data post-data}))
-        (when (:mp-syndicate-to params-kw)
-          (let [synd-uri (str (:mp-syndicate-to params-kw) "/webmention")
-                options {:headers (merge {"Authorization" token} form-enc)
-                         :form-params {:target synd-uri :source loc-hdr}}]
-            @(client/post synd-uri options)))
-        {:status 201 :headers {"Location" loc-hdr} :body "post has been created"})
-      {:status 500 :body "There was a problem creating your post"})))
-
-;; https://www.w3.org/TR/webmention/
-;; The means by which we interact with the posts/contributions of others in the ISN
-;; REVIEW: look into async - is it necessary for the kind of load we will be handling?
-(defn- webmention [req]
-  (let [{id :id token :token} (token-header->id (:headers req))
-        params (keywordize-keys (:params req))
-        now (local-date)
-        published (format "yyyy-MM-dd" now)
-        date-pathfrag (replace published "-" "")
-        u-frag (first (split  (str (UUID/randomUUID)) #"-"))
-        permafrag (str "signals/" date-pathfrag "-" u-frag)
-        loc-hdr (str site-root "/" permafrag)
-        sig-src (html-resource (java.net.URL. (:source params)))
-        sig-object (selector sig-src [:article.h-event :h2.p-name])
-        sig-summary (selector sig-src [:article.h-event :span.p-summary])
-        sig-end (selector sig-src [:article.h-event :div :span.dt-end])
-        sig-author (selector sig-src [:article.h-event :div :a.p-name])
-        sig-category (selector sig-src [:article.h-event :span.p-category])
-        sig-id (selector sig-src [:article.h-event :div.h-product :span.u-identified])
-        sig-cor (selector sig-src [:article.h-event :div.h-product :span.workflow-correlation])
-        sig-pub (selector sig-src [:article.h-event :time.dt-published])
-        sig-pubtime (first (mapcat #(attr-values % :datetime) (select sig-src [:article.h-event (attr? :datetime)])))
-        sig-priority (selector sig-src [:article.h-event :div.h-review :span.p-rating])
-        sig-data {:object sig-object :syndicated-from (:source params) :publishedDateTime sig-pubtime :summary sig-summary :permafrag permafrag :end sig-end :signalId sig-id :correlationId sig-cor :publishedDate sig-pub :priority sig-priority :provider sig-author :category sig-category}]
-    (debug :isn/webmention {:params params})
-    (debug :isn/webmention {:signal-data sig-data})
-    (if (authcn? id)
-      (do
-        (its/create pr-fs (str "/" permafrag ".edn") sig-data)
-        {:status 201 :headers {"Location" loc-hdr} :body "signal has been created"})
-      {:status 500})))
+        {:keys [permafrag] :as post-data} (dispatch-post (assoc params-kw :provider provider))
+        in (cond (nil? (headers "authorization")) :400 (not (authcn? id)) :401 (empty? post-data) :400 :else :201)]
+    (condp = in
+      :400 (->400 "bad request - please check your request is spec compliant")
+      :401 (->401 "unauthorized - credentials or token not valid")
+      :201 (let [loc-hdr (str site-root "/" permafrag)]
+             (its/create pr-fs (str "/" permafrag ".edn") post-data)
+             (sse-send (json/write-str {:name "isn-signal" :data post-data}))
+             (->201 loc-hdr "post has been created")))))
 
 (defn- sse-stream-ready [event-chan {:keys [request]}]
   (let [{uri :uri {client :client connection-uuid :connection-uuid} :path-params headers :headers} request
@@ -470,7 +434,6 @@
     ["/documentation"                       :get  (conj ses-tor `cfg-tor `documentation)]
     ["/privacy"                             :get  (conj htm-tor `cfg-tor `privacy)]
     ["/micropub"                            :post (conj api-tors `cfg-tor `micropub)]
-    ["/webmention"                          :post (conj api-tors `cfg-tor `webmention)]
     ["/signals"                             :get  (conj api-tors `cfg-tor `signals)]
     ["/status"                              :get status :route-name :status]
     ["/stream/sse/:client/:connection-uuid" :get (sse/start-event-stream sse-stream-ready) :route-name :stream]})
