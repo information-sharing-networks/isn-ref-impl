@@ -456,6 +456,6 @@
 (defn -main [_]
   (validate-config config)
   (info :isn/main (str "starting ISN Toolkit instance v" (get-in config [:version :isn-toolkit])))
-  (info :isn/main (str "site type : " (:site-type config)))
+  (info :isn/main (str "site-type : " (:site-type config)))
   (info :isn/main (str "data-path : " (:data-path config)))
   (-> (service-map config) http/create-server http/start))
