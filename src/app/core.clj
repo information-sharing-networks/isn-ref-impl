@@ -44,7 +44,11 @@
 
 (def site-type (:site-type config))
 
-(def meta-site-type #{"isn-membership-participant-update" "isn-membership-mirror-update"})
+(def mirror-cat "isn-membership-mirror-update")
+
+(def participant-cat "isn-membership-participant-update")
+
+(def meta-site-type #{participant-cat mirror-cat})
 
 (def pr-fs (itsfile/repo {:data-path data-path}))
 
@@ -114,18 +118,11 @@
     (str (instant x))
     (str (instant (zoned-date-time (local-date-time dt-fmt x) "UTC")))))
 
-(defn- participants-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
+(defn- isn-membership-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}} cat]
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(some (:category %) #{"isn-membership-participant-update"}) xs-edn)
+        xs-isn (filter #(some (:category %) #{cat}) xs-edn)
         xs (distinct-by #(% :object) xs-isn)]
-    (group-by :correlation-id xs)))
-
-(defn- mirrors-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
-  (let [xs-files (filter #(.isFile %) (file-seq (file path)))
-        xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(some (:category %) #{"isn-membership-mirror-update"}) xs-edn)
-        xs (distinct-by #(% :name) xs-isn)]
     (group-by :correlation-id xs)))
 
 (defn- selector [src path] (first (map text (select src path))))
@@ -218,8 +215,8 @@
       [:b "Published : "]
       [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
 
-(defn signals-list [f-sig-list f-sig-item query-params]
-  (let [sorted-xs (f-sig-list {:api? false :filters (or query-params {})})]
+(defn signals-list [f-sig-list f-sig-item query-params category]
+  (let [sorted-xs (f-sig-list {:api? false :filters (or query-params {})} category)]
     [:div.h-feed
      [:ul.list-group
       (for [[k v] sorted-xs]
@@ -292,8 +289,8 @@
               [:ul
                [:li (str "Name: " (:site-name cfg))]
                [:li (str "Purpose: " (:isn-purpose cfg))]]]
-             [:ui.l/card {}  "ISN Participants" (signals-list participants-edn signal-list-item query-params)]
-             [:ui.l/card {}  "ISN Mirrors"      (signals-list mirrors-edn signal-list-item query-params)]]))
+             [:ui.l/card {}  "ISN Participants" (signals-list isn-membership-edn signal-list-item query-params participant-cat)]
+             [:ui.l/card {}  "ISN Mirrors"      (signals-list isn-membership-edn signal-list-item query-params mirror-cat)]]))
     (page req head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session :as req}]
