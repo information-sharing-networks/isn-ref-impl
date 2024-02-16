@@ -44,6 +44,8 @@
 
 (def site-type (:site-type config))
 
+(def meta-site-type #{"isn-membership-participant-update" "isn-membership-mirror-update"})
+
 (def pr-fs (itsfile/repo {:data-path data-path}))
 
 (def form-enc {"Accept" "application/x-www-form-urlencoded"})
@@ -115,7 +117,7 @@
 (defn- participants-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}}]
   (let [xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(some (:category %) #{"isn-membership-participant-update" "isn-mirror"}) xs-edn)
+        xs-isn (filter #(some (:category %) #{"isn-membership-participant-update"}) xs-edn)
         xs (distinct-by #(% :object) xs-isn)]
     (group-by :correlation-id xs)))
 
@@ -235,24 +237,24 @@
 (defn signal-item [signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
         {:keys [category payload provider providerMapping publishedDateTime start syndicated-from] :as sig} (file->edn f-name)]
+    (println "categories : " category)
      [:div.card
       [:div.card-header [:h2 "Signal detail"]]
       [:div.card-body
        [:article.h-event
         [:a.u-url {:href (str "/" (:permafrag sig))} [:h2.p-name (:object sig)]]
         [:div
-         [:h3 "Signal payload"]
-         (when-not (some category #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
+         (when-not (some category meta-site-type)
+           [:h3 "Signal payload"]
            (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span v]]))
          [:h3 "Signal metadata"]
-         [:b "Summary: "]
-         [:span.p-summary (:summary sig)]]
+         [:b "Summary: "] [:span.p-summary (:summary sig)]]
         [:div.h-product
          [:div
           [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
           [:div
            [:b "Correlation ID: "] [:span.workflow-correlation (:correlation-id sig)]]]]
-        (when-not (some category #{"isn"}) ; REVIEW: categories need reviewing for network and mirror modes
+        (when-not (some category meta-site-type)
           [:div
            (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
            [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]

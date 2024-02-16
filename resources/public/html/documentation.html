@@ -79,9 +79,9 @@
                 with content type application/x-www-form-urlencoded similar to the below.
             </p>
             <p>For example to onboard a new ISN participant</p>
-            <pre><code>curl -i -X POST -d h=event -d category=isn-participant -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
+            <pre><code>curl -i -X POST -d h=event -d category=isn-membership-participant-update -d category=isn@sample-isn.my-example.xyz -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
             <p>For example to add a new mirror</p>
-            <pre><code>curl -i -X POST -d h=event -d category=isn-mirror -d end=2023-03-13T18:00:00Z -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
+            <pre><code>curl -i -X POST -d h=event -d category=isn-membership-mirror-update -d category=isn@sample-isn.my-example.xyz -d "name=sample-isn-mirror.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" http://localhost:5001/micropub</code></pre>
         </div>
     </div>
 
