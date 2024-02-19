@@ -99,7 +99,7 @@
 
 (defn make-category-filter [] ())
 
-(defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}}]
+(defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}} category]
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
@@ -282,7 +282,7 @@
              [:form {:action "/dashboard" :method "get" :name "filterform"}
               [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
              [:br]
-             (signals-list sorted-instant-edn signal-list-item query-params)])
+             (signals-list sorted-instant-edn signal-list-item query-params nil)])
           (when (= site-type "network")
             [:div
              [:ui.l/card {} "ISN Details"
