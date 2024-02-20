@@ -372,25 +372,41 @@
 ;; Provides extensibility we can publish a growing number of content types or 'posts' e.g. events, notes etc
 (defmulti dispatch-post (fn [m] (first (keys (select-keys m [:in-reply-to :like-of :h])))))
 
+(defmacro if-let*
+  ([bindings then]
+   `(if-let* ~bindings ~then nil))
+  ([bindings then else]
+   (if (seq bindings)
+     `(if-let [~(first bindings) ~(second bindings)]
+        (if-let* ~(drop 2 bindings) ~then ~else)
+        ~else)
+     then)))
+
 (defmethod dispatch-post :h [m] ;; REVIEW: currently defaults to event post type - do we need notes?
   (debug :isn-site/dispatch-post-event {})
-  (let [cat (:category m)
-        map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
-        corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
-        sig-id (str (UUID/randomUUID))
-        post (make-post m)
-        primary-map (-> post
-                        (assoc :category (if (vector? cat) (into #{} cat) (if (nil? cat) nil (conj #{} cat))))
-                        (assoc :permafrag (str "signals/" (str (replace (:publishedDate post) "-" "") "-" (first (split  corr-id #"-")) "-" (first (split  sig-id #"-")))))
-                        (assoc :object (:name m))
-                        (assoc :predicate (:summary m))
-                        (assoc :summary (str (:name m)  " " (:summary m)))
-                        (assoc :correlation-id corr-id)
-                        (assoc :signalId sig-id)
-                        (assoc :end (if (blank? (:end m)) (str (instant (plus (instant) (days (:days-from-now config))))) (str->inst (:end m))))
-                        (assoc :payload map-data))
-        with-start-map (if-let [start (:start m)] (assoc primary-map :start (str->inst start)) primary-map)]
-    with-start-map))
+  (if-let* [cat (:category m)
+            isn-cat (first (filter #(includes? % "isn@") cat))
+            isn (keyword (subs isn-cat 4))
+            sig-conf (get-in config [:signals isn])]
+    (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
+          corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
+          sig-id (str (UUID/randomUUID))
+          domain-cat (keyword (first (remove #(includes? % "isn@") cat)))
+          sig-expiry (get-in sig-conf [domain-cat :expiry-days-from-now])
+          post (make-post m)
+          primary-map (-> post
+                          (assoc :category (if (vector? cat) (into #{} cat) (if (nil? cat) nil (conj #{} cat))))
+                          (assoc :permafrag (str "signals/" (str (replace (:publishedDate post) "-" "") "-" (first (split  corr-id #"-")) "-" (first (split  sig-id #"-")))))
+                          (assoc :object (:name m))
+                          (assoc :predicate (:summary m))
+                          (assoc :summary (str (:name m)  " " (:summary m)))
+                          (assoc :correlation-id corr-id)
+                          (assoc :signalId sig-id)
+                          (assoc :end (if (blank? (:end m)) (str (instant (plus (instant) (days sig-expiry)))) (str->inst (:end m))))
+                          (assoc :payload map-data))
+          with-start-map (if-let [start (:start m)] (assoc primary-map :start (str->inst start)) primary-map)]
+      with-start-map)
+    {}))
 
 (defmethod dispatch-post :default [m] {})
 
