@@ -7,12 +7,12 @@
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
  :authcn-ids #{} ; used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :signals {
-  :sample-isn-1.my-example.xyz {
-    :pre-notification {:expiry-days-from-now 7}
-  }
-  :sample-isn-2.my-example.xyz {
-
-  }
+  ;:sample-isn-1.my-example.xyz { ;demonstrates per signal configuration
+    ;:first-signal {:expiry-days-from-now 14}
+  ;}
+  ;:sample-isn-2.my-example.xyz {
+    ;:second-signal {:expiry-days-from-now 7}
+  ;}
  } ; used to configure attreibutes/behavior per ISN and signal-category
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
  :show-list-payload-keys [:key1 :key2] ; Select domain specific keys for this site (if it is a participant site) to be displayed on the signals list (dashboard components)
