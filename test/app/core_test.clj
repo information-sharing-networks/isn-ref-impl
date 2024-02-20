@@ -2,12 +2,12 @@
    (:require [clojure.test :refer :all]
                       [io.pedestal.test :refer :all]
                       [io.pedestal.http :as http]
-                      [app.core :refer [cfg service-map] :as core]))
+                      [app.core :refer [config service-map] :as core]))
 
-(def service (::http/service-fn (http/create-servlet service-map)))
+(def service (::http/service-fn (http/create-servlet (service-map config))))
 
 ;;;; Config tests
-(deftest cfg-test  (is (= (:environment cfg) "dev")))
+(deftest cfg-test  (is (= (:environment config) "dev")))
 
 ;;;; Simple page loading tests
 (deftest home-test  (is (= (:status (response-for service :get "/")) 200)))
