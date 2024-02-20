@@ -42,11 +42,15 @@ clj -X:test
 
 #### Building and generating a version number in version.edn
 
+When you run the command watch the output carefully for failing tests.
+
 ```bash
 ./build.sh
 ```
 
 ### Deploying to production
+
+When you run the command watch the output carefully for faliing tests.
 
 ```bash
 ./deploy.sh
