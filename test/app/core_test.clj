@@ -1,8 +1,8 @@
 (ns app.core-test
    (:require [clojure.test :refer :all]
-                      [io.pedestal.test :refer :all]
-                      [io.pedestal.http :as http]
-                      [app.core :refer [config service-map] :as core]))
+             [io.pedestal.test :refer :all]
+             [io.pedestal.http :as http]
+             [app.core :refer [config service-map] :as core]))
 
 (def service (::http/service-fn (http/create-servlet (service-map config))))
 
