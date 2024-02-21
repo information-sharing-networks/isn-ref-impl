@@ -19,10 +19,10 @@
   (is (= 201 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=domain&name=ABCLab&summary=unsatisfactory"))))
+                                    :body "h=event&category=pre-notification&category=isn@sample-isn-1.my-example.xyz&name=ABCLab&summary=unsatisfactory"))))
 
   ;;  Complex example with key value pair description field
   (is (= 201 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=domain&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL")))))
+                                    :body "h=event&category=pre-notification&category=isn@sample-isn-1.my-example.xyz&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL")))))
