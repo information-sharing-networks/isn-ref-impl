@@ -266,11 +266,19 @@
 ;;;; Views
 ;;;; ===========================================================================
 
-(defn home [{:keys [session] :as req}]
+(defn home [{:keys [cfg session] :as req}]
   (page req head body
         (if (or (:user session) (dev?))
           [:ui.l/card {} "Home"
-           [:p "This is an ISN Site - part of an EoT BTD"]
+           [:h2 "About"]
+           [:p "This is an ISN Site. It is configured for participants to share signals across specific ISNs."]
+           [:p "You will need to be a member of an ISN to view or create signals within it. If you cannot see any signals or create them on this site please see the support links at the bottom of this page."]
+           [:ul
+            (for [[k v] (:signals cfg)]
+              [:li "ISN: " (name k)
+               [:ul
+                (for [[l u] v]
+                  [:li "Signal: " l " - " (:description u)])]])]
            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
           (login-view))))
 
