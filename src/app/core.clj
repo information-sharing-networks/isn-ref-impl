@@ -68,7 +68,8 @@
 (s/def ::data-path s-exists?)
 (s/def ::dev-site s-uri?)
 (s/def ::indieauth-token-uri s-uri?)
-(s/def ::config (s/keys :req-un [::site-name ::site-root ::authcn-ids ::indieauth-token-uri ::data-path ::dev-site]))
+(s/def ::indieauth-state string?)
+(s/def ::config (s/keys :req-un [::site-name ::site-root ::authcn-ids ::indieauth-token-uri ::indieauth-state ::data-path ::dev-site]))
 
 (defn- status [req] {:status 200 :body "Service is running"})
 
@@ -309,7 +310,7 @@
            [:p.wrap-break token]])
     (page req head body (login-view))))
 
-(defn login [{:keys [session] :as req}]
+(defn login [{:keys [cfg session] :as req}]
   (page req head body
         [:h2  "Login"]
         [:form {:action "https://indieauth.com/auth" :method "get"}
@@ -318,7 +319,7 @@
          [:p [:button {:type "submit"} "Sign in"]]
          [:input {:type "hidden" :name "client_id" :value (client-id)}]
          [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
-         [:input {:type "hidden" :name "state" :value "blurb"}]]))
+         [:input {:type "hidden" :name "state" :value (:indieauth-state cfg)}]]))
 
 ;; The callback function for indieauth authentication, gets the user's profile plus an access token
 ;; The means by which we authenticate and associate a user and token into our session
