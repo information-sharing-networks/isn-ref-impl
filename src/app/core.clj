@@ -279,15 +279,15 @@
 ;;;; Views
 ;;;; ===========================================================================
 
-(defn home [{:keys [cfg session] :as req}]
+(defn home [{{:keys [authcns signals]} :cfg {:keys [user]} :session :as req}]
   (page req head body
-        (if-let [authcn (:user session)]
+        (if-let [authcn user]
           [:ui.l/card {} "Home"
            [:h2 "About"]
            [:p "This is an ISN Site. It is configured for participants to share signals across specific ISNs."]
            [:p "You will need to be a member of an ISN to view or create signals within it. If you cannot see any signals or create them on this site please see the support links at the bottom of this page."]
            [:ul
-            (for [[k v] (filter (fn [[k v]] (some #{authcn} (k (:authcns cfg)))) (:signals cfg))]
+            (for [[k v] (filter (fn [[k v]] (some #{authcn} (k authcns))) signals)]
               [:li "ISN: " (name k)
                [:ul
                 (for [[l u] v]
