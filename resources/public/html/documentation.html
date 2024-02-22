@@ -192,21 +192,19 @@
                     <tr>
                         <td>end</td>
                         <td>Every signal has an end or expiry date (ISO 8601) - if not provided in the API call the
-                            default in terms ofdays from now is configured for an organisations ISN site. This can be
+                            default in terms of days from now is configured for an organisations ISN site per signal. This can be
                             passed in per '2023-02-07T21:00:00Z' or '2023-02-07 21:00:00'.</td>
                         <td>Optional</td>
                     </tr>
                     <tr>
                         <td>location</td>
                         <td>Typically a significant point on the goods journey - but this could be set to indicate a
-                            system from where a signal originates e.g. signals.my-example.xyz_system-x.</td>
+                            system from where a signal originates e.g. signals.my-example.xyz_system-x (see 'providerMapping' in the Signals spec).</td>
                         <td>Optional</td>
                     </tr>
                     <tr>
                         <td>category</td>
-                        <td>The category for this signal. There are many possible uses for this field. One example might
-                            be to indicate if the signal repreents a positive or negative profile ('positive-profile',
-                            'negative-profile').</td>
+                        <td>The category for this signal. There are typically two uses of this field - domain specific signal categories and isn identifiers. An example of a domain specific category is 'pre-notification' indicating the signal is a pre-notification. An example of an isn identifier is 'isn@sample-isn-1.my-example.xyz'. It is the combination of these two cateories which determines the required fields in the payload which is captured in the description field.</td>
                         <td>Optional</td>
                     </tr>
                 </tbody>
