@@ -72,6 +72,16 @@
 (s/def ::indieauth-state string?) 
 (s/def ::config (s/keys :req-un [::site-name ::site-root ::user ::authcns ::indieauth-token-uri ::indieauth-state ::data-path ::dev-site]))
 
+(defmacro if-let*
+  ([bindings then]
+   `(if-let* ~bindings ~then nil))
+  ([bindings then else]
+   (if (seq bindings)
+     `(if-let [~(first bindings) ~(second bindings)]
+        (if-let* ~(drop 2 bindings) ~then ~else)
+        ~else)
+     then)))
+
 (defn- status [req] {:status 200 :body "Service is running"})
 
 (def api-tors [(body-params)])
@@ -271,13 +281,13 @@
 
 (defn home [{:keys [cfg session] :as req}]
   (page req head body
-        (if (or (:user session) (dev?))
+        (if-let [authcn (:user session)]
           [:ui.l/card {} "Home"
            [:h2 "About"]
            [:p "This is an ISN Site. It is configured for participants to share signals across specific ISNs."]
            [:p "You will need to be a member of an ISN to view or create signals within it. If you cannot see any signals or create them on this site please see the support links at the bottom of this page."]
            [:ul
-            (for [[k v] (:signals cfg)]
+            (for [[k v] (filter (fn [[k v]] (some #{authcn} (k (:authcns cfg)))) (:signals cfg))]
               [:li "ISN: " (name k)
                [:ul
                 (for [[l u] v]
@@ -313,15 +323,17 @@
     (page req head body (login-view))))
 
 (defn login [{:keys [cfg session] :as req}]
-  (page req head body
-        [:h2  "Login"]
-        [:form {:action "https://indieauth.com/auth" :method "get"}
-         [:label {:for "url"} "Web Address "]
-         [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
-         [:p [:button {:type "submit"} "Sign in"]]
-         [:input {:type "hidden" :name "client_id" :value (client-id)}]
-         [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
-         [:input {:type "hidden" :name "state" :value (:indieauth-state cfg)}]]))
+  (if (dev?)
+    (-> (redirect (:redirect-uri cfg)) (assoc :session {:user (:user cfg)}))
+    (page req head body
+          [:h2  "Login"]
+          [:form {:action "https://indieauth.com/auth" :method "get"}
+           [:label {:for "url"} "Web Address "]
+           [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
+           [:p [:button {:type "submit"} "Sign in"]]
+           [:input {:type "hidden" :name "client_id" :value (client-id)}]
+           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
+           [:input {:type "hidden" :name "state" :value (:indieauth-state cfg)}]])))
 
 ;; The callback function for indieauth authentication, gets the user's profile plus an access token
 ;; The means by which we authenticate and associate a user and token into our session
@@ -364,15 +376,7 @@
         token-body (validate-token token)]
     {:id (get token-body "me") :token token}))
 
-(defmacro if-let*
-  ([bindings then]
-   `(if-let* ~bindings ~then nil))
-  ([bindings then else]
-   (if (seq bindings)
-     `(if-let [~(first bindings) ~(second bindings)]
-        (if-let* ~(drop 2 bindings) ~then ~else)
-        ~else)
-     then)))
+
 
 (defn- signals [{:keys [headers query-params] :as req}]
   (if-let* [id (:id (token-header->id headers))
