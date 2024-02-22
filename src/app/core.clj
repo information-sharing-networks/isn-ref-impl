@@ -69,7 +69,7 @@
 (s/def ::data-path s-exists?)
 (s/def ::dev-site s-uri?)
 (s/def ::indieauth-token-uri s-uri?)
-(s/def ::indieauth-state string?)
+(s/def ::indieauth-state string?) 
 (s/def ::config (s/keys :req-un [::site-name ::site-root ::user ::authcns ::indieauth-token-uri ::indieauth-state ::data-path ::dev-site]))
 
 (defn- status [req] {:status 200 :body "Service is running"})
@@ -92,7 +92,7 @@
 
 (defn- authcn? [{:keys [id isn]}]
   (let [host (trim (:host (uri id)))
-        ids (get-in config [:authcns (keyword isn)])]
+        ids (if isn (get-in config [:authcns (keyword isn)]) (apply clojure.set/union (vals (:authcns config))))]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
@@ -332,7 +332,7 @@
         rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
         user (:host (uri me))]
-    (if (some #{user} (:authcn-ids cfg))
+    (if (authcn? {:id user})
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
@@ -438,10 +438,10 @@
              (sse-send (json/write-str {:name "isn-signal" :data post-data}))
              (->201 loc-hdr "post has been created")))))
 
-(defn- sse-stream-ready [event-chan {:keys [request]}]
+(defn- sse-stream-ready [event-chan {:keys [request]}] ; REVIEW needs to be modified to only send specific ISN relevant signals
   (let [{uri :uri {client :client connection-uuid :connection-uuid} :path-params headers :headers} request
         id (:id (token-header->id headers))]
-    (if (and (get-in request [:headers "authorization"]) (authcn? id))
+    (if (and (get-in request [:headers "authorization"]) (authcn? {:id id}))
       (do 
         (swap! subscribers assoc (keyword (str client connection-uuid)) {:event-channel event-chan :uri uri})
         (async/>!! event-chan {:name "log-msg" :data "Client has subscribed to ISN SSE stream"}))
