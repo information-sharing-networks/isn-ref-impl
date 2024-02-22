@@ -42,10 +42,13 @@ clj -X:test
 
 #### Building and generating a version number in version.edn
 
+You will need to pass a parameter to build to determine how the version number for the project changes.
+Passing 'change' will increment the 'patch' component of the version (e.g. 0.1.0 will become 0.1.1).
+Passing 'minior' will increment the 'minor' component of the version (e.g. 0.1.3 will become 0.2.0).
 When you run the command watch the output carefully for failing tests.
 
 ```bash
-./build.sh
+./build.sh change
 ```
 
 ### Deploying to production

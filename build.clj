@@ -1,14 +1,22 @@
 (ns build
-  (:require [clojure.tools.build.api :as b]))
+  (:require [clojure.string :refer [split]]
+            [clojure.tools.build.api :as b]
+            [clojure.edn :refer [read-string]]))
 
-(def major-v 0)
-(def minor-v 5)
-(def version (format "%d.%d.%s" major-v minor-v (b/git-count-revs nil)))
 (def version-file "version.edn")
 
-(defn build
-  "builds indieweb-toolkit - taking care of setup, version files etc"
-  [_]
-  (println "building...")
-  (println "version: " version)
-  (b/write-file {:path version-file :content {:isn-toolkit version}}))
+(defn change [_]
+  (println "bumping version patch")
+  (let [v (->> "version.edn" slurp read-string)
+        [major minor patch] (split (:isn-toolkit v) #"\.")
+        new-v (str major "." minor "." (inc (Integer/parseInt patch)))]
+    (println "creating version : " new-v)
+    (b/write-file {:path version-file :content {:isn-toolkit new-v}})))
+
+(defn minor [_]
+  (println "bumping version minor")
+  (let [v (->> "version.edn" slurp read-string)
+        [major minor patch] (split (:isn-toolkit v) #"\.")
+        new-v (str major "." (inc (Integer/parseInt minor)) "." 0)]
+    (println "creating version : " new-v)
+    (b/write-file {:path version-file :content {:isn-toolkit new-v}})))
