@@ -109,8 +109,6 @@
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
-(defn make-category-filter [] ())
-
 ; REVIEW: handle authzn - do I need to pass user in here? then can see wherever user features in isns?
 (defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
