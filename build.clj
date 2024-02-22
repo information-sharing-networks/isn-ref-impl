@@ -5,7 +5,7 @@
 
 (def version-file "version.edn")
 
-(defn change [_]
+(defn patch [_]
   (println "bumping version patch")
   (let [v (->> "version.edn" slurp read-string)
         [major minor patch] (split (:isn-toolkit v) #"\.")
