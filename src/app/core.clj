@@ -21,7 +21,7 @@
             [net.cgrand.enlive-html :refer [attr? attr-values html-resource select text]]
             [voxmachina.itstore.postrepo :as its]
             [voxmachina.itstore.postrepo-fs :as itsfile]
-            [ui.layout :refer [->201 ->400 ->401 ->500 htm-tor html->hiccup page ses-tor]]
+            [ui.layout :refer [->200 ->201 ->400 ->401 ->500 htm-tor html->hiccup page ses-tor]]
             [ui.components])
   (:import java.util.UUID))
 
@@ -64,12 +64,13 @@
 
 (s/def ::site-name  string?)
 (s/def ::site-root string?)
-(s/def ::authcn-ids (s/coll-of string? :kind set? :min-count 1 :distinct true))
+(s/def ::user string?)
+(s/def ::authcns (s/map-of keyword? (s/coll-of string? :kind set? :min-count 1 :distinct true)))
 (s/def ::data-path s-exists?)
 (s/def ::dev-site s-uri?)
 (s/def ::indieauth-token-uri s-uri?)
 (s/def ::indieauth-state string?)
-(s/def ::config (s/keys :req-un [::site-name ::site-root ::authcn-ids ::indieauth-token-uri ::indieauth-state ::data-path ::dev-site]))
+(s/def ::config (s/keys :req-un [::site-name ::site-root ::user ::authcns ::indieauth-token-uri ::indieauth-state ::data-path ::dev-site]))
 
 (defn- status [req] {:status 200 :body "Service is running"})
 
@@ -89,9 +90,9 @@
     (let [rsp @(client/get (:indieauth-token-uri config) {:headers {"Authorization" token "Accept" "application/json"}})] 
       (json/read-str (:body rsp)))))
 
-(defn- authcn? [id]
+(defn- authcn? [{:keys [id isn]}]
   (let [host (trim (:host (uri id)))
-        ids (:authcn-ids config)]
+        ids (get-in config [:authcns (keyword isn)])]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
@@ -100,7 +101,8 @@
 
 (defn make-category-filter [] ())
 
-(defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}} category]
+; REVIEW: handle authzn - do I need to pass user in here? then can see wherever user features in isns?
+(defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
@@ -110,8 +112,8 @@
              (remove #(or (before? (instant (:publishedDateTime %)) (instant from)) (after? (instant (:publishedDateTime %)) (instant to))) fs-xs)
              fs-xs)
         cat-xs (if category (filter #(some (:category %) #{category}) xs) xs)
-        isn-xs (if isn (filter #(some (:category %) #{isn}) cat-xs ) cat-xs)
-        sigs (if api? (map #(dissoc % :permafrag :summary) isn-xs) isn-xs)] ; REVIEW: sort signal by pubish date time somewhere?
+        isn-xs (if isn (filter #(some (:category %) #{(str "isn@" isn)}) cat-xs ) cat-xs)
+        sigs (if api? (map #(dissoc % :isn :permafrag :summary) isn-xs) isn-xs)] ; REVIEW: sort signal by pubish date time somewhere?
     (group-by :correlation-id sigs)))
 
 (defn- str->inst [x]
@@ -329,7 +331,7 @@
   (let [code (:code query-params)
         rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
-        user (:host (uri me))        ]
+        user (:host (uri me))]
     (if (some #{user} (:authcn-ids cfg))
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
@@ -362,12 +364,22 @@
         token-body (validate-token token)]
     {:id (get token-body "me") :token token}))
 
+(defmacro if-let*
+  ([bindings then]
+   `(if-let* ~bindings ~then nil))
+  ([bindings then else]
+   (if (seq bindings)
+     `(if-let [~(first bindings) ~(second bindings)]
+        (if-let* ~(drop 2 bindings) ~then ~else)
+        ~else)
+     then)))
+
 (defn- signals [{:keys [headers query-params] :as req}]
-  (let [id (:id (token-header->id headers))
-        sorted-xs (sorted-instant-edn {:filters (or query-params {})})]
-    (if (and (get-in req [:headers "authorization"]) (authcn? id))
-      {:status 200 :headers {"Content-Type" "application/json"} :body (json/write-str sorted-xs)}
-      {:status 500 :body "There was a problem fulfilling your request"})))
+  (if-let* [id (:id (token-header->id headers))
+            authcn (and (get-in req [:headers "authorization"]) (authcn? {:id id :isn (:isn query-params)}))
+            sorted-xs (sorted-instant-edn {:filters (or query-params {})} nil)]
+    (->200 sorted-xs)
+    (->500 "There was a problem fulfilling your request")))
 
 (defn- make-post [m]
   (let [inst (instant)
@@ -380,16 +392,6 @@
 
 ;; Provides extensibility we can publish a growing number of content types or 'posts' e.g. events, notes etc
 (defmulti dispatch-post (fn [m] (first (keys (select-keys m [:in-reply-to :like-of :h])))))
-
-(defmacro if-let*
-  ([bindings then]
-   `(if-let* ~bindings ~then nil))
-  ([bindings then else]
-   (if (seq bindings)
-     `(if-let [~(first bindings) ~(second bindings)]
-        (if-let* ~(drop 2 bindings) ~then ~else)
-        ~else)
-     then)))
 
 (defmethod dispatch-post :h [m] ;; REVIEW: currently defaults to event post type - do we need notes?
   (debug :isn-site/dispatch-post-event {})
@@ -404,8 +406,9 @@
           sig-expiry (get-in sig-conf [domain-cat :expiry-days-from-now])
           post (make-post m)
           primary-map (-> post
+                          (assoc :isn isn)
                           (assoc :category (if (vector? cat) (into #{} cat) (if (nil? cat) nil (conj #{} cat))))
-                          (assoc :permafrag (str "signals/" (str (replace (:publishedDate post) "-" "") "-" (first (split  corr-id #"-")) "-" (first (split  sig-id #"-")))))
+                          (assoc :permafrag (str "signals/" (str (replace (:publishedDate post) "-" "") "-" (first (split corr-id #"-")) "-" (first (split sig-id #"-")))))
                           (assoc :object (:name m))
                           (assoc :predicate (:summary m))
                           (assoc :summary (str (:name m)  " " (:summary m)))
@@ -425,8 +428,8 @@
   (let [{:keys [mp-syndicated-to] :as params-kw} (keywordize-keys (or json-params params))
         {id :id token :token} (token-header->id headers)
         provider (trim (:host (uri id)))
-        {:keys [permafrag] :as post-data} (dispatch-post (assoc params-kw :provider provider))
-        in (cond (nil? (headers "authorization")) :400 (not (authcn? id)) :401 (empty? post-data) :400 :else :201)]
+        {:keys [isn permafrag] :as post-data} (dispatch-post (assoc params-kw :provider provider))
+        in (cond (nil? (headers "authorization")) :400 (not (authcn? {:id id :isn isn})) :401 (empty? post-data) :400 :else :201)]
     (condp = in
       :400 (->400 "bad request - please check your request is spec compliant")
       :401 (->401 "unauthorized - credentials or token not valid")
