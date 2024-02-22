@@ -247,34 +247,33 @@
 (defn signal-item [signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
         {:keys [category payload provider providerMapping publishedDateTime start syndicated-from] :as sig} (file->edn f-name)]
-    (println "categories : " category)
-     [:div.card
-      [:div.card-header [:h2 "Signal detail"]]
-      [:div.card-body
-       [:article.h-event
-        [:a.u-url {:href (str "/" (:permafrag sig))} [:h2.p-name (:object sig)]]
-        [:div
-         (when-not (some category meta-site-type)
-           [:h3 "Signal payload"]
-           (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span v]]))
-         [:h3 "Signal metadata"]
-         [:b "Summary: "] [:span.p-summary (:summary sig)]]
-        [:div.h-product
-         [:div
-          [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
-          [:div
-           [:b "Correlation ID: "] [:span.workflow-correlation (:correlation-id sig)]]]]
+    [:div.card
+     [:div.card-header [:h2 "Signal detail"]]
+     [:div.card-body
+      [:article.h-event
+       [:a.u-url {:href (str "/" (:permafrag sig))} [:h2.p-name (:object sig)]]
+       [:div
         (when-not (some category meta-site-type)
-          [:div
-           (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
-           [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
-           [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
-        (when (and start (:show-eta config)) [:div [:b "ETA : "] [:span start]])
-        [:div "Provider : "
-         [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
-        [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
-        [:div "Category : " [:span.p-category category]]
-        (when syndicated-from [:div "Syndicated from : " [:a {:href syndicated-from} provider]])]]]))
+          [:h3 "Signal payload"]
+          (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span v]]))
+        [:h3 "Signal metadata"]
+        [:b "Summary: "] [:span.p-summary (:summary sig)]]
+       [:div.h-product
+        [:div
+         [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
+         [:div
+          [:b "Correlation ID: "] [:span.workflow-correlation (:correlation-id sig)]]]]
+       (when-not (some category meta-site-type)
+         [:div
+          (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
+          [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
+          [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
+       (when (and start (:show-eta config)) [:div [:b "ETA : "] [:span start]])
+       [:div "Provider : "
+        [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
+       [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
+       [:div "Category : " [:span.p-category category]]
+       (when syndicated-from [:div "Syndicated from : " [:a {:href syndicated-from} provider]])]]]))
 
 ;;;; Views
 ;;;; ===========================================================================
