@@ -100,7 +100,9 @@
     (let [rsp @(client/get (:indieauth-token-uri config) {:headers {"Authorization" token "Accept" "application/json"}})] 
       (json/read-str (:body rsp)))))
 
-(defn- authcn? [{:keys [id isn]}]
+(defn- authcn?
+  "Authenticate if user is a member of any ISN configured within this site."
+  [{:keys [id isn]}]
   (let [host (trim (:host (uri id)))
         ids (if isn (get-in config [:authcns (keyword isn)]) (apply clojure.set/union (vals (:authcns config))))]
     (and (not-empty ids) host (some #{host} ids))))
