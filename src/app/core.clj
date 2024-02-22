@@ -111,12 +111,13 @@
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
-; REVIEW: handle authzn - do I need to pass user in here? then can see wherever user features in isns?
-(defn- sorted-instant-edn [{:keys [path api? filters] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think
+(defn- sorted-instant-edn [{:keys [path api? filters user] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        current-xs (remove #(before? (instant (:end %)) (instant)) xs-edn)
+        valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns config))))
+        authzn-xs (filter #(some #{(:isn %)} valid-isns) xs-edn)
+        current-xs (remove #(before? (instant (:end %)) (instant)) authzn-xs)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
         xs (if (and from to)
              (remove #(or (before? (instant (:publishedDateTime %)) (instant from)) (after? (instant (:publishedDateTime %)) (instant to))) fs-xs)
@@ -228,8 +229,8 @@
       [:b "Published : "]
       [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
 
-(defn signals-list [f-sig-list f-sig-item query-params category]
-  (let [sorted-xs (f-sig-list {:api? false :filters (or query-params {})} category)]
+(defn signals-list [f-sig-list f-sig-item {:keys [query-params session]} category]
+  (let [sorted-xs (f-sig-list {:api? false :user (:user session) :filters (or query-params {})} category)]
     [:div.h-feed
      [:ul.list-group
       (for [[k v] sorted-xs]
@@ -302,15 +303,15 @@
              [:form {:action "/dashboard" :method "get" :name "filterform"}
               [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
              [:br]
-             (signals-list sorted-instant-edn signal-list-item query-params nil)])
+             (signals-list sorted-instant-edn signal-list-item req nil)])
           (when (= site-type "network")
             [:div
              [:ui.l/card {} "ISN Details"
               [:ul
                [:li (str "Name: " (:site-name cfg))]
                [:li (str "Purpose: " (:isn-purpose cfg))]]]
-             [:ui.l/card {}  "ISN Participants" (signals-list isn-membership-edn signal-list-item query-params participant-cat)]
-             [:ui.l/card {}  "ISN Mirrors"      (signals-list isn-membership-edn signal-list-item query-params mirror-cat)]]))
+             [:ui.l/card {}  "ISN Participants" (signals-list isn-membership-edn signal-list-item req participant-cat)]
+             [:ui.l/card {}  "ISN Mirrors"      (signals-list isn-membership-edn signal-list-item req mirror-cat)]]))
     (page req head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session :as req}]
@@ -375,12 +376,10 @@
         token-body (validate-token token)]
     {:id (get token-body "me") :token token}))
 
-
-
 (defn- signals [{:keys [headers query-params] :as req}]
   (if-let* [id (:id (token-header->id headers))
             authcn (and (get-in req [:headers "authorization"]) (authcn? {:id id :isn (:isn query-params)}))
-            sorted-xs (sorted-instant-edn {:filters (or query-params {})} nil)]
+            sorted-xs (sorted-instant-edn {:user (:host (uri id)) :filters (or query-params {})} nil)]
     (->200 sorted-xs)
     (->500 "There was a problem fulfilling your request")))
 
