@@ -118,11 +118,11 @@
                 signals or live ones in this demonstrator ISN.
             </p>
             <pre><code>curl -i -H "Authorization: Bearer xxxxx" https://your.isn-site.xyz/signals</code></pre>
-	    <p>This will return a collection of signals sorted by <a href="https://github.com/information-sharing-networks/signals/blob/main/README.md#example-1---the-simplest-possible-signal" target="_blank">correlation-id</a>.</p>
+	    <p>This will return a collection of all signals from ISNs you are authorised to interact with sorted by <a href="https://github.com/information-sharing-networks/signals/blob/main/README.md#example-1---the-simplest-possible-signal" target="_blank">correlation-id</a>. N.B. it may be unwise to query for all signals without filtering in some way (e.g. ISN, provider or within a window of time) as there could be a large nuber of signals.</p>
             <p>
                You can filter signals using query parameters. Filtering is a flexible mechanism an example is provided below combining a number of filters.
             </p>
-            <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?provider=x&countryCode=y</code></pre>
+            <pre><code>curl -i -H "Authorization: Bearer xxxx" https://your.isn-site.xyz/signals?isn=sample-isn-1.my-example.xyz\&provider=x\&countryCode=y</code></pre>
             <p>Signals can be filtered by any of the metadata fields per the Signals specification including by a single category. At the time of writing there is no way to filter by multiple categories.</p>
 	    <p>It is possible to filter signals by isn in the event that as a participant you are a member of multiple ISNs. an 'isn' filter may be used and you must pass as the value an ISN domain including an 'isn@' prefix as part of the authority (e.g. isn=isn@sample-isn.my-example.xyz).</p>
 	    <p>It is possible to filter signals to only include those with a published date-time between two date-times. These date range filters can be stacked on top of standard filters as documented previously.</p>
