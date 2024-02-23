@@ -344,7 +344,7 @@
         rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
         user (:host (uri me))]
-    (if (authcn? {:id user})
+    (if (authcn? {:id me})
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
