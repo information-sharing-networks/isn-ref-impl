@@ -7,7 +7,7 @@
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
  ;:user "" ; uncomment this - used to check the id from a bearer token (the participant owner of this isn site
  ;:authcns {
-   ;:sample-isn-1.my-example.xyz #{}
+   ;:sample-isn-1.my-example.xyz #{#ref [:user]} ; must have user in after that insert domains appropriate to access control needs
  ;} ; uncomment - used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :signals {
   ;:sample-isn-1.my-example.xyz { ;demonstrates per signal configuration
@@ -31,7 +31,7 @@
  :environment "dev" ; setting the env to dev will remove the need to supply a valid token
  :dev-site "https://signals-provider.my-example.xyz" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
- :network-site "https://sample-isn.my-example.xyz" ; the URI for the ISN network site or entry point - all participant sites and mirrors should be able to link back to it
+ :network-site "https://sample-isn.my-example.xyz" ; the URI for the ISN network site or entry point - all participant sites and mirrors should be able to link back to it REVIEW: this needs to be removed - there is no notion of a special ISN any mirror or particiant site is a member of
  :csp-settings {:connect-src #ref [:site-root]
                 :frame-ancestors #ref [:site-root]
                 :font-src #ref [:site-root]
