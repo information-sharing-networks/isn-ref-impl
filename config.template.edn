@@ -6,7 +6,7 @@
  :rel-root "https://your.domain.tld" ; used as a prefix before rel links
  :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
  ;:user "" ; uncomment this - used to check the id from a bearer token (the participant owner of this isn site
- ;:authcns #{
+ ;:authcns {
    ;:sample-isn-1.my-example.xyz #{}
  ;} ; uncomment - used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
  :signals {
