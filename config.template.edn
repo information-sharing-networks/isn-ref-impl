@@ -1,5 +1,3 @@
-; REVIEW: ISN level config may need to be extrapolated into its own top level item containing both authcns and signals and general purpose config s oit can replicate across peers
-
 {:port 5001
  :version #include "version.edn"
  :site-name "ISN Site"
