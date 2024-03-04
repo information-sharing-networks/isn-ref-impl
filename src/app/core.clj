@@ -104,7 +104,7 @@
   "Authenticate if user is a member of any ISN configured within this site."
   [{:keys [id isn]}]
   (let [host (trim (:host (uri id)))
-        ids (if isn (get-in config [:authcns (keyword isn)]) (apply clojure.set/union (vals (:authcns config))))]
+        ids (if isn (get-in config [:authcns (keyword isn)]) (conj (apply clojure.set/union (vals (:authcns config))) (:user config)))]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
@@ -393,9 +393,9 @@
         (assoc :publishedDateTime (.toString inst)))))
 
 ;; Provides extensibility we can publish a growing number of content types or 'posts' e.g. events, notes etc
-(defmulti dispatch-post (fn [m] (first (keys (select-keys m [:in-reply-to :like-of :h])))))
+(defmulti dispatch-post (fn [m] (first (keys (select-keys m [:summary :content])))))
 
-(defmethod dispatch-post :h [m] ;; REVIEW: currently defaults to event post type - do we need notes?
+(defmethod dispatch-post :summary [m] ; event
   (debug :isn-site/dispatch-post-event {})
   (if-let* [cat (:category m)
             isn-cat (first (filter #(includes? % "isn@") cat))
@@ -421,6 +421,14 @@
           with-start-map (if-let [start (:start m)] (assoc primary-map :start (str->inst start)) primary-map)]
       with-start-map)
     {}))
+
+(defmethod dispatch-post :content [{:keys [category content] :as m}] ; note
+  (debug :isn-site/dispatch-post-note {})
+  (let [post (make-post m)]
+    (-> post
+        (assoc :category (if (vector? category) (into #{} category) (if (nil? category) nil (conj #{} category))))
+        (assoc :permafrag (str "notes/" (str (replace (:publishedDate post) "-" "") "-" category)))
+        (assoc :content content))))
 
 (defmethod dispatch-post :default [m] {})
 
