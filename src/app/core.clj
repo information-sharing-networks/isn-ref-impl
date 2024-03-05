@@ -201,7 +201,7 @@
       [:li [:a.u-uid.u-url {:href "/"} [:i.bi.bi-house-fill]]]
       [:li [:a.u-url {:rel "me" :href (:rel-me-github cfg)} [:i.bi.bi-github]]]]
      [:p
-      [:small "This site is part of an " [:a {:href (:network-site cfg) :target "_blank"} "EoT ISN"] ", for support please email : "]
+      [:small "This site is part of an EoT ISN, for support please email : "]
       [:small [:a {:name "support"} [:a {:href (str "mailto:" (:support-email cfg))} (:support-email cfg)]]]]
      [:p
       [:small "Built using isn-toolkit v" (get-in cfg [:version :isn-toolkit]) ". This software uses the " [:a {:href "https://opensource.org/license/mit/"} "MIT"] " licence. View " [:a {:href "/privacy"} "privacy"] " information."]]]]
@@ -279,18 +279,20 @@
 ;;;; Views
 ;;;; ===========================================================================
 
-(defn home [{{:keys [authcns signals]} :cfg {:keys [user]} :session :as req}]
+(defn home [{{:keys [authcns isns]} :cfg {:keys [user]} :session :as req}]
   (page req head body
         (if-let [authcn user]
           [:ui.l/card {} "Home"
            [:h2 "About"]
            [:p "This is an ISN Site. It is configured for participants to share signals across specific ISNs."]
            [:p "You will need to be a member of an ISN to view or create signals within it. If you cannot see any signals or create them on this site please see the support links at the bottom of this page."]
+           [:h2 "ISNs this site is a participant in"]
            [:ul
-            (for [[k v] (filter (fn [[k v]] (some #{authcn} (k authcns))) signals)]
+            (for [[k v] (filter (fn [[k v]] (some #{authcn} (k authcns))) isns)]
               [:li "ISN: " (name k)
+               [:div "Purpose: " (get-in v [:details :purpose])]
                [:ul
-                (for [[l u] v]
+                (for [[l u] (:signals v)]
                   [:li "Signal: " l " - " (:description u)])]])]
            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
           (login-view))))
@@ -303,15 +305,7 @@
              [:form {:action "/dashboard" :method "get" :name "filterform"}
               [:i.bi.bi-filter] [:input#provider {:name "provider" :placeholder "provider.domain.xyz"}]]
              [:br]
-             (signals-list sorted-instant-edn signal-list-item req nil)])
-          (when (= site-type "network")
-            [:div
-             [:ui.l/card {} "ISN Details"
-              [:ul
-               [:li (str "Name: " (:site-name cfg))]
-               [:li (str "Purpose: " (:isn-purpose cfg))]]]
-             [:ui.l/card {}  "ISN Participants" (signals-list isn-membership-edn signal-list-item req participant-cat)]
-             [:ui.l/card {}  "ISN Mirrors"      (signals-list isn-membership-edn signal-list-item req mirror-cat)]]))
+             (signals-list sorted-instant-edn signal-list-item req nil)]))
     (page req head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session :as req}]
@@ -400,12 +394,12 @@
   (if-let* [cat (:category m)
             isn-cat (first (filter #(includes? % "isn@") cat))
             isn (keyword (subs isn-cat 4))
-            sig-conf (get-in config [:signals isn])]
+            sig-conf (get-in config [:isns isn])]
     (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
           corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
           sig-id (str (UUID/randomUUID))
           domain-cat (keyword (first (remove #(includes? % "isn@") cat)))
-          sig-expiry (get-in sig-conf [domain-cat :expiry-days-from-now])
+          sig-expiry (get-in sig-conf [:signals domain-cat :expiry-days-from-now])
           post (make-post m)
           primary-map (-> post
                           (assoc :isn isn)
