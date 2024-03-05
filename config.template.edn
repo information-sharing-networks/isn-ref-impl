@@ -32,14 +32,16 @@
  :dev-site "https://signals-provider.my-example.xyz" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
  :network-site "https://sample-isn.my-example.xyz" ; the URI for the ISN network site or entry point - all participant sites and mirrors should be able to link back to it REVIEW: this needs to be removed - there is no notion of a special ISN any mirror or particiant site is a member of
- :csp-settings {:connect-src #ref [:site-root]
-                :frame-ancestors #ref [:site-root]
-                :font-src #ref [:site-root]
-                :form-action #ref [:site-root]
-                :frame-src #ref [:site-root]                                                           :img-src #ref [:site-root]
-                :manifest-src #ref [:site-root]
-                :media-src #ref [:site-root]
-                :object-src #ref [:site-root]
-                :style-src #ref [:site-root]
-                :script-src #ref [:site-root]} ; security settings
+ :csp-settings {
+   :connect-src #ref [:site-root]
+   :frame-ancestors #ref [:site-root]
+   :font-src #ref [:site-root]
+   ; :form-action #ref [:site-root] ; REVIEW: this causes problems with the default configuration
+   :frame-src #ref [:site-root]
+   :img-src #ref [:site-root]
+   :manifest-src #ref [:site-root]
+   :media-src #ref [:site-root]
+   :object-src #ref [:site-root]
+   :style-src #ref [:site-root]
+   :script-src #ref [:site-root]} ; security settings
  }
