@@ -5,7 +5,7 @@
   ;:user "" ; uncomment this - used to check the id from a bearer token (the participant owner of this isn site
  :rel-root #join ["https://" #ref [:user]] ; used as a prefix before rel links created by adding a scheme to the previously define user (e.g. https://your.domain.tld)
  :site-root #ref [:rel-root] ; this will be the same as rel-root in production but may be changed to localhost for dev mode locally N.B. override this for localhost
- :rel-me-github "https://domain.tld/some-path" ; E.G. Github profile uri
+ :rel-me-github "https://github.com/some-account" ; Github account/profile uri (e.g. https://github.com/acme-user)
  ;:authcns {
    ;:sample-isn-1.my-example.xyz #{#ref [:user]} ; must have user in after that insert domains appropriate to access control needs
  ;} ; uncomment - used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
