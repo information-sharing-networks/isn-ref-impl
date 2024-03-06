@@ -32,17 +32,17 @@
 
 (def dt-fmt "dd-MM-yyyy HH:mm:ss")
 
-(def config (read-config "config.edn" {}))
+(defn config [] (read-config "config.edn" {}))
 
-(def data-path (:data-path config))
+(def data-path (:data-path (config)))
 
 (def sig-path (str data-path "/signals"))
 
-(defn dev? [] (= (:environment config) "dev"))
+(defn dev? [] (= (:environment (config)) "dev"))
 
-(def site-root (:site-root config))
+(def site-root (:site-root (config)))
 
-(def site-type (:site-type config))
+(def site-type (:site-type (config)))
 
 (def mirror-cat "isn-membership-mirror-update")
 
@@ -86,25 +86,25 @@
 
 (def api-tors [(body-params)])
 
-(defn rel-root [] (:rel-root config)) ;; REVIEW: use function to provision for multi-tenancy
+(defn rel-root [] (:rel-root (config))) ;; REVIEW: use function to provision for multi-tenancy
 
 (defn client-id [] (str (rel-root) "/"))
 
 (defn redirect-uri [] (str (client-id) "indieauth-redirect"))
 
-(defn login-uri [] (:indielogin-uri config))
+(defn login-uri [] (:indielogin-uri (config)))
 
 (defn- validate-token [token]
   (if (dev?)
-    {"me" (:dev-site config)}
-    (let [rsp @(client/get (:indieauth-token-uri config) {:headers {"Authorization" token "Accept" "application/json"}})] 
+    {"me" (:dev-site (config))}
+    (let [rsp @(client/get (:indieauth-token-uri (config)) {:headers {"Authorization" token "Accept" "application/json"}})] 
       (json/read-str (:body rsp)))))
 
 (defn- authcn?
   "Authenticate if user is a member of any ISN configured within this site."
   [{:keys [id isn]}]
   (let [host (trim (:host (uri id)))
-        ids (if isn (get-in config [:authcns (keyword isn)]) (conj (apply clojure.set/union (vals (:authcns config))) (:user config)))]
+        ids (if isn (get-in (config) [:authcns (keyword isn)]) (conj (apply clojure.set/union (vals (:authcns (config)))) (:user (config))))]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
@@ -115,7 +115,7 @@
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns config))))
+        valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns (config)))))
         authzn-xs (filter #(some #{(:isn %)} valid-isns) xs-edn)
         current-xs (remove #(before? (instant (:end %)) (instant)) authzn-xs)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
@@ -145,7 +145,7 @@
 
 ;;;; Service interceptors
 ;;;; ===========================================================================
-(def cfg-tor {:name :cfg-tor :enter (fn [context] (assoc-in context [:request :cfg] config))})
+(def cfg-tor {:name :cfg-tor :enter (fn [context] (assoc-in context [:request :cfg] (config)))})
 
 ;;;; Components
 ;;;; ===========================================================================
@@ -219,7 +219,7 @@
     [:div
      [:div [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
      [:ul
-      (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys config))]
+      (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys (config)))]
         [:li [:b k] ": " v])]
      [:div
       (when (and (:start sig) (:show-eta config)) [:div [:b "ETA : "] [:span (:start sig)]])
@@ -394,7 +394,7 @@
   (if-let* [cat (:category m)
             isn-cat (first (filter #(includes? % "isn@") cat))
             isn (keyword (subs isn-cat 4))
-            sig-conf (get-in config [:isns isn])]
+            sig-conf (get-in (config) [:isns isn])]
     (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
           corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
           sig-id (str (UUID/randomUUID))
@@ -486,8 +486,9 @@
 
 ;; App entry point
 (defn -main [_]
-  (validate-config config)
-  (info :isn/main (str "starting ISN Toolkit instance v" (get-in config [:version :isn-toolkit])))
-  (info :isn/main (str "site-type : " (:site-type config)))
-  (info :isn/main (str "data-path : " (:data-path config)))
-  (-> (service-map config) http/create-server http/start))
+  (let [cfg (config)]
+    (validate-config cfg)
+    (info :isn/main (str "starting ISN Toolkit instance v" (get-in cfg [:version :isn-toolkit])))
+    (info :isn/main (str "site-type : " (:site-type cfg)))
+    (info :isn/main (str "data-path : " (:data-path cfg)))
+    (-> (service-map cfg) http/create-server http/start)))
