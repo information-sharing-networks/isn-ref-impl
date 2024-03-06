@@ -15,7 +15,11 @@
        ;:purpose "Sharing signals of type XYZ"
      ;}
      ;:signals {
-       ;:first-signal {:expiry-days-from-now 14}
+       ;:first-signal {
+         ;:description "A signal description"
+         ;:list-payload-keys [:k1 :k2] ; Selects fields to display for this signal type in dashboard
+         ;:expiry-days-from-now 14
+       ;}
      ;}
   ;}
   ;:sample-isn-2.my-example.xyz {
@@ -23,7 +27,6 @@
   ;}
  } ; used to configure attreibutes/behavior per ISN and signal-category
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
- :show-list-payload-keys [:key1 :key2] ; Select domain specific keys for this site (if it is a participant site) to be displayed on the signals list (dashboard components)
  :show-eta true ; it is possible to specify a start 'instant' - this can be used for example as an ETA (signals dashboard components)
  :site-type "participant" ; may be participant (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or network (network entry-point site)
  :days-from-now 7

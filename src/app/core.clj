@@ -111,7 +111,7 @@
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
-(defn- sorted-instant-edn [{:keys [path api? filters user] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think
+(defn- sorted-instant-edn [{:keys [path api? filters user] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think - in fact this outer category variable is shadowed by an inner which has a completely different meaning
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
@@ -212,31 +212,29 @@
   [:ui.l/card {} "Please log in"
         [:p "Please " [:a {:href "/login"} "login"] " to to see the dashboard"]])
 
-(defn signal-list-item [sig]
-  (let [obj-inner (if (some (:category sig) #{"isn-participant" "isn-mirror"})
-                    [:a {:href (str "https://" (:object sig)) :target "_blank"} (:object sig)]
-                    (:object sig))]
+(defn signal-list-item [{:keys [isns show-eta] :as cfg} {:keys [category isn payload permafrag provider start summary] :as sig}]
+  (let [domain-cat (first (remove #(includes? % "isn@") category))
+        show-keys (get-in ((keyword isn) isns) [:signals (keyword domain-cat) :list-payload-keys])]
     [:div
-     [:div [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]
+     [:div [:a.p-summary {:href permafrag} summary]]
      [:ul
-      (for [[k v] (select-keys (:payload sig) (:show-list-payload-keys (config)))]
-        [:li [:b k] ": " v])]
+      (for [[k v] (select-keys payload show-keys)] [:li [:b k] ": " v])]
      [:div
-      (when (and (:start sig) (:show-eta config)) [:div [:b "ETA : "] [:span (:start sig)]])
+      (when (and start show-eta) [:div [:b "ETA : "] [:span start]])
       [:b "Provider : "]
-      [:a.p-author.h-card {:href (str "https://" (:provider sig)) :target "_blank"} (:provider sig)]
+      [:a.p-author.h-card {:href (str "https://" provider) :target "_blank"} provider]
       ", "
       [:b "Published : "]
       [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
 
-(defn signals-list [f-sig-list f-sig-item {:keys [query-params session]} category]
+(defn signals-list [f-sig-list f-sig-item {:keys [cfg query-params session]} category]
   (let [sorted-xs (f-sig-list {:api? false :user (:user session) :filters (or query-params {})} category)]
     [:div.h-feed
      [:ul.list-group
       (for [[k v] sorted-xs]
         (let [sorted-sigs (sort-by :publishedDateTime v)]
           [:li.h-event.list-group-item
-           (f-sig-item (first sorted-sigs))
+           (f-sig-item cfg (first sorted-sigs))
            (when (not-empty (rest sorted-sigs))
              [:ul.list-group
               (for [sig (rest sorted-sigs)]
@@ -269,7 +267,7 @@
           (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
           [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
           [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
-       (when (and start (:show-eta config)) [:div [:b "ETA : "] [:span start]])
+       (when (and start (:show-eta (config))) [:div [:b "ETA : "] [:span start]])
        [:div "Provider : "
         [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
        [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
@@ -498,9 +496,9 @@
 
 ;; App entry point
 (defn -main [_]
-  (let [cfg (config)]
+  (let [{:keys [data-path site-type version] :as cfg} (config)]
     (validate-config cfg)
-    (info :isn/main (str "starting ISN Toolkit instance v" (get-in cfg [:version :isn-toolkit])))
-    (info :isn/main (str "site-type : " (:site-type cfg)))
-    (info :isn/main (str "data-path : " (:data-path cfg)))
+    (info :isn/main (str "starting ISN Toolkit instance v" (:isn-toolkit version)))
+    (info :isn/main (str "site-type : " site-type))
+    (info :isn/main (str "data-path : " data-path))
     (-> (service-map cfg) http/create-server http/start)))
