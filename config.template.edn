@@ -5,31 +5,19 @@
  :rel-root #join ["https://" #ref [:user]] ; used as a prefix before rel links created by adding a scheme to the previously define user (e.g. https://your.domain.tld)
  :site-root #ref [:rel-root] ; this will be the same as rel-root in production but may be changed to localhost for dev mode locally N.B. override this for localhost
  :rel-me-github "https://github.com/some-account" ; Github account/profile uri (e.g. https://github.com/acme-user)
+ 
+ ; N.B. careful with :authcns - in some cases you need to sign a Collaboration Agreement to participate in an ISN
  ;:authcns {
    ;:sample-isn-1.my-example.xyz #{#ref [:user]} ; must have user in after that insert domains appropriate to access control needs
  ;} ; uncomment - used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
- :isns {
-   ;:sample-isn-1.my-example.xyz { ;demonstrates per signal configuration
-     ;:details {
-       ;:name "Name of ISN"
-       ;:purpose "Sharing signals of type XYZ"
-     ;}
-     ;:signals {
-       ;:first-signal {
-         ;:description "A signal description"
-         ;:list-payload-keys [:k1 :k2] ; Selects fields to display for this signal type in dashboard
-         ;:expiry-days-from-now 14
-       ;}
-     ;}
-  ;}
-  ;:sample-isn-2.my-example.xyz {
-    ;...
-  ;}
- } ; used to configure attreibutes/behavior per ISN and signal-category
- :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.d. setup via aperture
+ 
+ ; N.B. careful with :isns - in some cases you need to sign a Collaboration Agreement to participate in an ISN
+ ; used to configure attreibutes/behavior per ISN and signal-category
+ ;:isns #merge [#include "/isn-x/sample-isn-1.edn" #include "isn-y/sample-isn-2.edn"]
+ 
+ :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.g. setup via aperture
  :show-eta true ; it is possible to specify a start 'instant' - this can be used for example as an ETA (signals dashboard components)
  :site-type "participant" ; may be participant (a site for any participating entity). mirror (a specific mirror where 'topics' are published) or network (network entry-point site)
- :days-from-now 7
  :indieauth-email "your@mail.com"
  :indieauth-token-uri "https://tokens.indieauth.com/token"
  :indieauth-state "setAStateHere" ; used in the Indieauth flow

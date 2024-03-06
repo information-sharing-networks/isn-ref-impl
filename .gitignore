@@ -9,9 +9,11 @@ nohup.out
 config.edn
 deploy.sh
 version.edn
+isn-*.edn
 isn.tgz
 key.pub
 isn-ref-impl.iml
 logs
+isn-*
 resources/public/data/notes/*.edn
 resources/public/data/signals/*.edn
