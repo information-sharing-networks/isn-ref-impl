@@ -370,12 +370,24 @@
         token-body (validate-token token)]
     {:id (get token-body "me") :token token}))
 
+(defn valid-query-params? [{:keys [from to] :as query-params}]
+  (if (and from to)
+    (try
+      (and (inst? (instant from)) (inst? (instant to)))
+      (catch Exception e false))
+    true))
+
 (defn- signals [{:keys [headers query-params] :as req}]
-  (if-let* [id (:id (token-header->id headers))
-            authcn (and (get-in req [:headers "authorization"]) (authcn? {:id id :isn (:isn query-params)}))
-            sorted-xs (sorted-instant-edn {:user (:host (uri id)) :filters (or query-params {})} nil)]
-    (->200 sorted-xs)
-    (->500 "There was a problem fulfilling your request")))
+  (let [id (:id (token-header->id headers))
+        in (cond
+             (not (and (valid-query-params? query-params) (get-in req [:headers "authorization"]))) :400
+             (not (authcn? {:id id :isn (:isn query-params)})) :401
+             :else :201)]
+    (condp = in
+      :400 (->400 "bad request - please check your request is spec compliant")
+      :401 (->401 "unauthorized - credentials or token not valid")
+      :201 (let [sorted-xs (sorted-instant-edn {:user (:host (uri id)) :filters (or query-params {})} nil)]
+             (->200 sorted-xs)))))
 
 (defn- make-post [m]
   (let [inst (instant)
