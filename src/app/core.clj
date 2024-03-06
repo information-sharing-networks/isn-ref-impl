@@ -286,7 +286,7 @@
            [:h2 "About"]
            [:p "This is an ISN Site. It is configured for participants to share signals across specific ISNs."]
            [:p "You will need to be a member of an ISN to view or create signals within it. If you cannot see any signals or create them on this site please see the support links at the bottom of this page."]
-           [:h2 "ISNs this site is a participant in"]
+           [:h2 "ISN membership details"]
            [:ul
             (for [[k v] (filter (fn [[k v]] (some #{authcn} (k authcns))) isns)]
               [:li "ISN: " (name k)
