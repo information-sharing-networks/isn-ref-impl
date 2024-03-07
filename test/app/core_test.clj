@@ -25,10 +25,10 @@
   (is (= 201 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=pre-notification&category=isn@btd-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL"))))
+                                    :body "h=event&category=pre-notification&category=isn@btd-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryOfOrigin=PL"))))
 
   ;;  An incorrect signal and domain category pairing should yield a 400
   (is (= 400 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=pre-notification&category=isn@sample-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL")))))
+                                    :body "h=event&category=pre-notification&category=isn@sample-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryOfOrigin=PL")))))
