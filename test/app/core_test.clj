@@ -7,7 +7,7 @@
 (def service (::http/service-fn (http/create-servlet (service-map config))))
 
 ;;;; Config tests
-(deftest cfg-test  (is (= (:environment config) "dev")))
+(deftest cfg-test  (is (= (:environment (config)) "dev")))
 
 ;;;; Simple page loading tests
 (deftest home-test  (is (= (:status (response-for service :get "/")) 200)))
@@ -19,10 +19,16 @@
   (is (= 201 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=pre-notification&category=isn@sample-isn-1.my-example.xyz&name=ABCLab&summary=unsatisfactory"))))
+                                    :body "h=event&category=pre-notification&category=isn@btd-1.info-sharing.network&name=ABCLab&summary=unsatisfactory"))))
 
   ;;  Complex example with key value pair description field
   (is (= 201 (:status (response-for service
                                     :post "/micropub"
                                     :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
-                                    :body "h=event&category=pre-notification&category=isn@sample-isn-1.my-example.xyz&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL")))))
+                                    :body "h=event&category=pre-notification&category=isn@btd-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL"))))
+
+  ;;  An incorrect signal and domain category pairing should yield a 400
+  (is (= 400 (:status (response-for service
+                                    :post "/micropub"
+                                    :headers {"Authorization" "Bearer: XYZ" "Content-Type" "application/x-www-form-urlencoded"}
+                                    :body "h=event&category=pre-notification&category=isn@sample-1.info-sharing.network&name=XYZLab&summary=unsatisfactory&description=cnCode=chickencode^countryCode=PL")))))
