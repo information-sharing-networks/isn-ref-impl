@@ -116,7 +116,7 @@
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
         valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns (config)))))
-        authzn-xs (filter #(some #{(:isn %)} valid-isns) xs-edn)
+        authzn-xs (filter #(some #{(keyword (:isn %))} valid-isns) xs-edn)
         current-xs (remove #(before? (instant (:end %)) (instant)) authzn-xs)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
         xs (if (and from to)
@@ -403,8 +403,8 @@
   (debug :isn-site/dispatch-post-event {})
   (if-let* [cat (:category m)
             isn-cat (first (filter #(includes? % "isn@") cat))
-            isn (keyword (subs isn-cat 4))
-            sig-conf (get-in (config) [:isns isn])]
+            isn (subs isn-cat 4)
+            sig-conf (get-in (config) [:isns (keyword isn)])]
     (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
           corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
           sig-id (str (UUID/randomUUID))
