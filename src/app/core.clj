@@ -272,6 +272,7 @@
         [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
        [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
        [:div "Category : " [:span.p-category category]]
+       [:div "ISN : " (:isn sig)]
        (when syndicated-from [:div "Syndicated from : " [:a {:href syndicated-from} provider]])]]]))
 
 ;;;; Views
