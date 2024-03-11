@@ -4,7 +4,7 @@
              [io.pedestal.http :as http]
              [app.core :refer [config service-map] :as core]))
 
-(def service (::http/service-fn (http/create-servlet (service-map config))))
+(def service (::http/service-fn (http/create-servlet (service-map (config)))))
 
 ;;;; Config tests
 (deftest cfg-test  (is (= (:environment (config)) "dev")))
