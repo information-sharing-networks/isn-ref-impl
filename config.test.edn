@@ -1,0 +1,46 @@
+{:port 5001
+ :version #include "version.edn"
+ :site-name "ISN Site"
+ :user "signals-provider.my-example.xyz"
+ :rel-root #join ["https://" #ref [:user]]
+ :site-root "http://localhost:5001"
+ :rel-me-github "https://domain.tld/some-path"
+ :authcns {
+   :btd-2.info-sharing.network #{
+     #ref [:user]
+     "acme.my-example.xyz"
+     "test-isn-1.my-example.xyz"
+   }
+   :btd-1.info-sharing.network #{
+     #ref [:user]
+     "acme.my-example.xyz"
+     "sample-isn-2.my-example.xyz"
+   }
+ }
+ ; N.B. careful with the :isns key - in some cases you need to sign a Collaboration Agreement to participate in an ISN
+ :isns #merge [#include "isn-btd-1/isn-btd-1.edn" #include "isn-btd-2/isn-btd-2.edn"]
+ :microsub-uri "https://your.domain.tld/microsub/id"
+ :show-eta true
+ :site-type "participant"
+ :indieauth-email "your@mail.com"
+ :indieauth-token-uri "https://tokens.indieauth.com/token"
+ :indieauth-state "blurb"
+ :indielogin-uri "https://some-indielogin.tld/auth"
+ :redirect-uri "/"
+ :data-path "/home/r0ss/.isn/isn-1/site-pha/data"
+ :environment "dev"
+ :dev-site #join ["https://" #ref [:user]]
+ :support-email "support@email.com"
+ :csp-settings {
+   :connect-src #ref [:site-root]
+   :frame-ancestors #ref [:site-root]
+   :font-src #ref [:site-root]
+   :form-action #ref [:site-root]
+   :frame-src #ref [:site-root]
+   :img-src #ref [:site-root]
+   :manifest-src #ref [:site-root]
+   :media-src #ref [:site-root]
+   :object-src #ref [:site-root]
+   :style-src #ref [:site-root]
+   :script-src #ref [:site-root]}
+ }
