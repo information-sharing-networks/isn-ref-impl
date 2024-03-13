@@ -406,7 +406,11 @@
             isn-cat (first (filter #(includes? % "isn@") cat))
             isn (subs isn-cat 4)
             sig-conf (get-in cfg [:isns (keyword isn)])]
-    (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
+    (let [map-data (cond
+                     (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^"))))
+                     (:payload m) (:payload m)
+                     :else {})
+            ;(if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
           corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
           sig-id (str (UUID/randomUUID))
           domain-cat (keyword (first (remove #(includes? % "isn@") cat)))
