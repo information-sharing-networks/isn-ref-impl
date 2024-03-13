@@ -5,20 +5,59 @@
  :rel-root #join ["https://" #ref [:user]]
  :site-root "http://localhost:5001"
  :rel-me-github "https://domain.tld/some-path"
- :authcns {
-   :btd-2.info-sharing.network #{
-     #ref [:user]
-     "acme.my-example.xyz"
-     "test-isn-1.my-example.xyz"
+ :authcns #profile {
+   :test-success {
+     :test-1.info-sharing.network #{
+       #ref [:user]
+       "acme.my-example.xyz"
+       "test-isn-1.my-example.xyz"
+     }
+     :test-2.info-sharing.network #{
+       #ref [:user]
+       "acme.my-example.xyz"
+       "sample-isn-2.my-example.xyz"
+     }
    }
-   :btd-1.info-sharing.network #{
-     #ref [:user]
-     "acme.my-example.xyz"
-     "sample-isn-2.my-example.xyz"
+   :test-failure {
+     :test-1.info-sharing.network #{
+       ;#ref [:user]
+       "acme.my-example.xyz"
+       "test-isn-1.my-example.xyz"
+     }
+     :test-2.info-sharing.network #{
+       "acme.my-example.xyz"
+       "sample-isn-2.my-example.xyz"
+     }
    }
  }
- ; N.B. careful with the :isns key - in some cases you need to sign a Collaboration Agreement to participate in an ISN
- :isns #merge [#include "isn-btd-1/isn-btd-1.edn" #include "isn-btd-2/isn-btd-2.edn"]
+ :isns {
+        :test-1.info-sharing.network {
+                                     :details {
+                                               :name "ISN BTD 1"
+                                               :purpose "Exchanging pre-notification and related compliance signals"
+}
+                                     :signals {
+                                               :pre-notification {
+                                                                  :description "Indicators about incoming goods movements"
+                                                                  :list-payload-keys [:cnCode :countryOfOrigin]
+                                                                  :expiry-days-from-now 14
+                                                                  }
+                                               }
+                                     }
+        :test-2.info-sharing.network {
+                                     :details {
+                                               :name "BTD 2 - EoT evaluation ISN"
+                                               :purpose "Improving food safety via lab sample signals and feedback loops"
+                                               }
+                                     :signals {
+                                               :lab-sample-initial-unsatisfactory-industry {
+                                                                                            :description "Industry lab samples"
+                                                                                            :list-payload-keys [:cnCode :countryOfOrigin]
+                                                                                            :expiry-days-from-now 7
+                                                                                            }
+                                               }
+                                     }
+        }
  :microsub-uri "https://your.domain.tld/microsub/id"
  :show-eta true
  :site-type "participant"

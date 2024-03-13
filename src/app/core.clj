@@ -38,8 +38,6 @@
 
 (def sig-path (str data-path "/signals"))
 
-(defn dev? [] (= (:environment (config)) "dev"))
-
 (def site-root (:site-root (config)))
 
 (def site-type (:site-type (config)))
@@ -82,40 +80,42 @@
         ~else)
      then)))
 
+(defn dev? [cfg] (= (:environment cfg) "dev"))
+
 (defn- status [req] {:status 200 :body "Service is running"})
 
 (def api-tors [(body-params)])
 
-(defn rel-root [] (:rel-root (config))) ;; REVIEW: use function to provision for multi-tenancy
+(defn rel-root [cfg] (:rel-root cfg)) ;; REVIEW: use function to provision for multi-tenancy
 
-(defn client-id [] (str (rel-root) "/"))
+(defn client-id [cfg] (str (rel-root cfg) "/"))
 
-(defn redirect-uri [] (str (client-id) "indieauth-redirect"))
+(defn redirect-uri [cfg] (str (client-id cfg) "indieauth-redirect"))
 
 (defn login-uri [] (:indielogin-uri (config)))
 
-(defn- validate-token [token]
-  (if (dev?)
-    {"me" (:dev-site (config))}
-    (let [rsp @(client/get (:indieauth-token-uri (config)) {:headers {"Authorization" token "Accept" "application/json"}})] 
+(defn- validate-token [{:keys [cfg token]}]
+  (if (dev? cfg)
+    {"me" (:dev-site cfg)}
+    (let [rsp @(client/get (:indieauth-token-uri cfg) {:headers {"Authorization" token "Accept" "application/json"}})] 
       (json/read-str (:body rsp)))))
 
 (defn- authcn?
   "Authenticate if user is a member of any ISN configured within this site."
-  [{:keys [id isn]}]
+  [{:keys [cfg id isn]}]
   (let [host (trim (:host (uri id)))
-        ids (if isn (get-in (config) [:authcns (keyword isn)]) (conj (apply clojure.set/union (vals (:authcns (config)))) (:user (config))))]
+        ids (if isn (get-in cfg [:authcns (keyword isn)]) (conj (apply clojure.set/union (vals (:authcns cfg))) (:user cfg)))]
     (and (not-empty ids) host (some #{host} ids))))
 
 (defn file->edn [file] (->> file slurp edn/read-string))
 
 (defn make-filter [[k v]] (filter #(or (= v (k %)) (= v (get-in % [:payload k])))))
 
-(defn- sorted-instant-edn [{:keys [path api? filters user] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think - in fact this outer category variable is shadowed by an inner which has a completely different meaning
+(defn- sorted-instant-edn [{:keys [cfg path api? filters user] :or {path sig-path api? true filters {}}} category] ; REVIEW: category as a standalone is badly named here it is the category of site type not signal I think - in fact this outer category variable is shadowed by an inner which has a completely different meaning
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
-        valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns (config)))))
+        valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns cfg))))
         authzn-xs (filter #(some #{(keyword (:isn %))} valid-isns) xs-edn)
         current-xs (remove #(before? (instant (:end %)) (instant)) authzn-xs)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
@@ -228,7 +228,7 @@
       [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
 
 (defn signals-list [f-sig-list f-sig-item {:keys [cfg query-params session]} category]
-  (let [sorted-xs (f-sig-list {:api? false :user (:user session) :filters (or query-params {})} category)]
+  (let [sorted-xs (f-sig-list {:cfg cfg :api? false :user (:user session) :filters (or query-params {})} category)]
     [:div.h-feed
      [:ul.list-group
       (for [[k v] sorted-xs]
@@ -297,7 +297,7 @@
           (login-view))))
 
 (defn dashboard [{:keys [cfg query-params session] :as req}]
-  (if (or (:user session) (dev?))
+  (if (or (:user session) (dev? cfg))
     (page req head body
           (when (some #{site-type} #{"participant" "mirror"})
             [:ui.l/card {} "Latest signals"
@@ -308,7 +308,7 @@
     (page req head body (login-view))))
 
 (defn account [{{:keys [token user] :as session} :session :as req}]
-  (if (or user (dev?))
+  (if (or user (dev? (:cfg req)))
     (page req head body
           [:ui.l/card {}  "Account"
            [:h3 "API Token"]
@@ -316,7 +316,7 @@
     (page req head body (login-view))))
 
 (defn login [{:keys [cfg session] :as req}]
-  (if (dev?)
+  (if (dev? cfg)
     (-> (redirect (:redirect-uri cfg)) (assoc :session {:user (:user cfg)}))
     (page req head body
           [:h2  "Login"]
@@ -324,8 +324,8 @@
            [:label {:for "url"} "Web Address "]
            [:input#url {:type "text" :name "me" :placeholder "https://yourdomain.you"}]
            [:p [:button {:type "submit"} "Sign in"]]
-           [:input {:type "hidden" :name "client_id" :value (client-id)}]
-           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri)}]
+           [:input {:type "hidden" :name "client_id" :value (client-id cfg)}]
+           [:input {:type "hidden" :name "redirect_uri" :value (redirect-uri cfg)}]
            [:input {:type "hidden" :name "state" :value (:indieauth-state cfg)}]])))
 
 ;; The callback function for indieauth authentication, gets the user's profile plus an access token
@@ -334,25 +334,25 @@
 ;; https://indieauth.spec.indieweb.org/#redeeming-the-authorization-code
 (defn indieauth-redirect [{:keys [cfg path-params query-params session]}]
   (let [code (:code query-params)
-        rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id) :me (rel-root) :redirect_uri (redirect-uri)}})
+        rsp @(client/post (:indieauth-token-uri cfg) {:headers {"Accept" "application/json"} :form-params {:grant_type "authorization_code" :code code :client_id (client-id cfg) :me (rel-root cfg) :redirect_uri (redirect-uri cfg)}})
         {:keys [me access_token]} (keywordize-keys (json/read-str (:body rsp)))
         user (:host (uri me))]
-    (if (authcn? {:id me})
+    (if (authcn? {:cfg cfg :id me})
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
-(defn about [{:keys [session] :as req}]
+(defn about [{:keys [cfg session] :as req}]
   (page req head body
-        (if (or (:user session) (dev?))
+        (if (or (:user session) (dev? cfg))
           (condp = site-type
             "participant" (html->hiccup (slurp "resources/public/html/about-site.html"))
             "mirror" (html->hiccup (slurp "resources/public/html/about-mirror.html"))
             "network" (html->hiccup (slurp "resources/public/html/about-isn.html")))
           (login-view))))
 
-(defn documentation [{:keys [session] :as req}]
+(defn documentation [{:keys [cfg session] :as req}]
   (page req head body
-        (if (or (:user session) (dev?))
+        (if (or (:user session) (dev? cfg))
           (html->hiccup (slurp "resources/public/html/documentation.html"))
           (login-view))))
 
@@ -363,10 +363,10 @@
 ;;;; API
 ;;;; ===========================================================================
 
-(defn- token-header->id [headers]
+(defn- token-header->id [{:keys [cfg headers]}]
   (let [headers (keywordize-keys headers)
         token (:authorization headers)
-        token-body (validate-token token)]
+        token-body (validate-token {:cfg cfg :token token})]
     {:id (get token-body "me") :token token}))
 
 (defn valid-query-params? [{:keys [from to] :as query-params}]
@@ -376,16 +376,16 @@
       (catch Exception e false))
     true))
 
-(defn- signals [{:keys [headers query-params] :as req}]
-  (let [id (:id (token-header->id headers))
+(defn- signals [{:keys [cfg headers query-params] :as req}]
+  (let [id (:id (token-header->id req))
         in (cond
              (not (and (valid-query-params? query-params) (get-in req [:headers "authorization"]))) :400
-             (not (authcn? {:id id :isn (:isn query-params)})) :401
-             :else :201)]
+             (not (authcn? {:cfg cfg :id id :isn (:isn query-params)})) :401
+             :else :200)]
     (condp = in
       :400 (->400 "bad request - please check your request is spec compliant")
       :401 (->401 "unauthorized - credentials or token not valid")
-      :201 (let [sorted-xs (sorted-instant-edn {:user (:host (uri id)) :filters (or query-params {})} nil)]
+      :200 (let [sorted-xs (sorted-instant-edn {:cfg cfg :user (:host (uri id)) :filters (or query-params {})} nil)]
              (->200 sorted-xs)))))
 
 (defn- make-post [m]
@@ -398,14 +398,14 @@
         (assoc :publishedDateTime (.toString inst)))))
 
 ;; Provides extensibility we can publish a growing number of content types or 'posts' e.g. events, notes etc
-(defmulti dispatch-post (fn [m] (first (keys (select-keys m [:summary :content])))))
+(defmulti dispatch-post (fn [{:keys [cfg m]}] (first (keys (select-keys m [:summary :content])))))
 
-(defmethod dispatch-post :summary [m] ; event
+(defmethod dispatch-post :summary [{:keys [cfg m]}] ; event
   (debug :isn-site/dispatch-post-event {})
   (if-let* [cat (:category m)
             isn-cat (first (filter #(includes? % "isn@") cat))
             isn (subs isn-cat 4)
-            sig-conf (get-in (config) [:isns (keyword isn)])]
+            sig-conf (get-in cfg [:isns (keyword isn)])]
     (let [map-data (if (:description m) (keywordize-keys (into {} (map #(split % #"=") (split (:description m) #"\^")))) {})
           corr-id (or (:correlation-id map-data) (str (UUID/randomUUID)))
           sig-id (str (UUID/randomUUID))
@@ -439,12 +439,12 @@
 
 ;; https://www.w3.org/TR/micropub/
 ;; The means by which we publish a signal on to an ISN Site
-(defn- micropub [{:keys [headers json-params params] :as req}]
+(defn- micropub [{:keys [cfg headers json-params params] :as req}]
   (let [{:keys [mp-syndicated-to] :as params-kw} (keywordize-keys (or json-params params))
-        {id :id token :token} (token-header->id headers)
+        {id :id token :token} (token-header->id req)
         provider (trim (:host (uri id)))
-        {:keys [isn permafrag] :as post-data} (dispatch-post (assoc params-kw :provider provider))
-        in (cond (nil? (headers "authorization")) :400 (not (authcn? {:id id :isn isn})) :401 (empty? post-data) :400 :else :201)]
+        {:keys [isn permafrag] :as post-data} (dispatch-post {:cfg cfg :m (assoc params-kw :provider provider)})
+        in (cond (nil? (headers "authorization")) :400 (not (authcn? {:cfg cfg :id id :isn isn})) :401 (empty? post-data) :400 :else :201)]
     (condp = in
       :400 (->400 "bad request - please check your request is spec compliant")
       :401 (->401 "unauthorized - credentials or token not valid")
@@ -453,7 +453,9 @@
              (sse-send (json/write-str {:name "isn-signal" :data post-data}))
              (->201 loc-hdr "post has been created")))))
 
-(defn- sse-stream-ready [event-chan {:keys [request]}] ; REVIEW needs to be modified to only send specific ISN relevant signals
+; REVIEW: needs to be modified to only send specific ISN relevant signals
+; REVIEW: needs to have cfg passed as input
+(defn- sse-stream-ready [event-chan {:keys [request]}] 
   (let [{uri :uri {client :client connection-uuid :connection-uuid} :path-params headers :headers} request
         id (:id (token-header->id headers))]
     (if (and (get-in request [:headers "authorization"]) (authcn? {:id id}))
