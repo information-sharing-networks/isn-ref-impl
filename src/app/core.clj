@@ -218,7 +218,7 @@
     [:div
      [:div [:a.p-summary {:href permafrag} summary]]
      [:ul
-      (for [[k v] (select-keys payload show-keys)] [:li [:b k] ": " v])]
+      (for [[k v] (select-keys payload show-keys)] [:li [:b k] ": " (str v)])]
      [:div
       (when (and start show-eta) [:div [:b "ETA : "] [:span start]])
       [:b "Provider : "]
@@ -254,7 +254,7 @@
        [:div
         (when-not (some category meta-site-type)
           [:h3 "Signal payload"]
-          (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span v]]))
+          (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span (str v)]]))
         [:h3 "Signal metadata"]
         [:b "Summary: "] [:span.p-summary (:summary sig)]]
        [:div.h-product
