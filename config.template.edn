@@ -13,7 +13,7 @@
  
  ; N.B. careful with :isns - in some cases you need to sign a Collaboration Agreement to participate in an ISN
  ; used to configure attreibutes/behavior per ISN and signal-category
- ;:isns #merge [#include "/isn-x/sample-isn-1.edn" #include "isn-y/sample-isn-2.edn"]
+ ;:isns #merge [#include "isn-x/sample-isn-1.edn" #include "isn-y/sample-isn-2.edn"]
  
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.g. setup via aperture
  :show-eta true ; it is possible to specify a start 'instant' - this can be used for example as an ETA (signals dashboard components)
