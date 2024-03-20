@@ -88,5 +88,5 @@ Still in the new ISN PS directory
 
 Meta example:
 ```bash
-mkdir -p /root/.isn/isn-x/isn-site-abc/data
+mkdir -p /root/.isn/isn-x/isn-site-abc/data/signals
 ```
