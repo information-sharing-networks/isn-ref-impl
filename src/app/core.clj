@@ -307,8 +307,8 @@
              (signals-list sorted-instant-edn signal-list-item req nil)]))
     (page req head body (login-view))))
 
-(defn account [{{:keys [token user] :as session} :session :as req}]
-  (if (or user (dev? (:cfg req)))
+(defn account [{{:keys [token user]} :session :as req}]
+  (if (or (and user (= user (:user (:cfg req)))) (dev? (:cfg req)))
     (page req head body
           [:ui.l/card {}  "Account"
            [:h3 "API Token"]
