@@ -23,7 +23,8 @@
             [voxmachina.itstore.postrepo-fs :as itsfile]
             [ui.layout :refer [->200 ->201 ->400 ->401 ->500 htm-tor html->hiccup page ses-tor]]
             [ui.components])
-  (:import java.util.UUID))
+  (:import java.util.UUID)
+  (:gen-class))
 
 ;;;; Config and constants
 ;;;; ===========================================================================

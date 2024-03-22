@@ -3,7 +3,29 @@
             [clojure.tools.build.api :as b]
             [clojure.edn :refer [read-string]]))
 
+
 (def version-file "version.edn")
+(def build-dir "target")
+(def jar-content (str build-dir "/classes"))
+
+(def basis (b/create-basis {:project "deps.edn"}))
+(def app "isntoolkit")
+(defn uber-file [{:keys [isn-toolkit]}]
+  (format "%s/%s-%s-standalone.jar" build-dir app isn-toolkit))
+
+(defn clean [_]
+  (b/delete {:path build-dir})
+  (println "Cleaned build directory"))
+
+(defn uber [_]
+  (let [v (->> "version.edn" slurp read-string)
+        uf (uber-file v)]
+    (clean nil)
+    (b/copy-dir {:src-dirs ["config"] :target-dir jar-content})
+    (b/copy-dir {:src-dirs ["resources"] :target-dir jar-content})
+    (b/compile-clj {:basis basis :src-dirs ["src"] :class-dir jar-content})
+    (b/uber {:class-dir jar-content :uber-file uf :basis basis :main 'app.core})
+    (println (format "Uber file created: \"%s\"" uf))))
 
 (defn patch [_]
   (println "bumping version patch")
