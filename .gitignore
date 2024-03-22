@@ -14,6 +14,7 @@ isn.tgz
 key.pub
 isn-ref-impl.iml
 logs
+target
 isn-*
 resources/public/data/notes/*.edn
 resources/public/data/signals/*.edn
