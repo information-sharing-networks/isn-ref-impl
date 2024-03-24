@@ -116,8 +116,9 @@
   (let [{:keys [category isn from to] :or {category nil isn nil from nil to nil}} filters
         xs-files (filter #(.isFile %) (file-seq (file path)))
         xs-edn (map file->edn (map str xs-files))
+        non-tst (if (not= (:user cfg) user) (remove #(some (category %) #{"test"}) xs-edn) xs-edn)
         valid-isns (into #{} (map key (filter (fn [[k v]] (some #{user} v)) (:authcns cfg))))
-        authzn-xs (filter #(some #{(keyword (:isn %))} valid-isns) xs-edn)
+        authzn-xs (filter #(some #{(keyword (:isn %))} valid-isns) non-tst)
         current-xs (remove #(before? (instant (:end %)) (instant)) authzn-xs)
         fs-xs (try (sequence (reduce comp (map make-filter (dissoc filters :from :to :isn :category))) current-xs) (catch Exception e  current-xs))
         xs (if (and from to)
