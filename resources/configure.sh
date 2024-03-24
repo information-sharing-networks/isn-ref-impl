@@ -23,18 +23,22 @@ then
     echo "Enter a port for the service to run on one scheme is for a 1st isn 5001 - 5010, 2nd isn 5011 - 5020, make sure the port is not in use or this PS won't start"
     read -p ">" port
     sed -i "2 i :port $port" config.edn
+    echo
 
     echo "Enter a name for your Participant Site - this will display on the web dashboard as a title e.g. ISN Site Acme Inc"
     read -p ">" sitename
     sed -i "3 i :site-name \"$sitename\"" config.edn
+    echo
 
     echo "Enter a fully qualified host for the user who controls this Participant Site e.g. acme-actor.your-domain.xyz"
     read -p ">" user
     sed -i "5 i :user \"$user\"" config.edn
+    echo
 
     echo "Enter Github account name (this will control the Participant Site) e.g. MyAccount11"
     read -p ">" gitacc
     sed -i "8 i :rel-me-github \"https://github.com/$gitacc\"" config.edn
+    echo
 
     echo "Enter an ISN you would like this Participant Site to participate in e.g. the-isn.info-sharing.network"
     read -p ">" isn
