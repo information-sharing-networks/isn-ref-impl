@@ -288,6 +288,7 @@
                [:ul
                 (for [[l u] (:signals v)]
                   [:li "Signal: " l " - " (:description u)])]])]
+           [:br]
            [:p "Please go to the " [:a {:href "/dashboard"} "dashboard"] " to to see the signals"]]
           (login-view))))
 
