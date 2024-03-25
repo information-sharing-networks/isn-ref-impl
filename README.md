@@ -62,9 +62,15 @@ When you run the command watch the output carefully for faliing tests.
 ./deploy.sh minor
 ```
 
+This will create a compressed archive of the project in a file called isn.tgz and move it to the server you configure in deploy.sh.
+
+You will then need to:
+
 - Create your isn directory on your server
 - Unpack the isn.tgz file which has been copied to your server in the isn directory created above
 - Configure the config.edn for production
 - Use the sample script in 'scripts' to create a systemd service
 - Copy START.template and STOP.template to START and STOP respectively
 - Configure the sample START and STOP scripts to point to your systemd service
+
+There are more detailed instructions for deploying a Participant Site into an existing ISN in 'docs/creating-participant-sites.md'.
