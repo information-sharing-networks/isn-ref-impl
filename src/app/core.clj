@@ -13,15 +13,13 @@
             [io.pedestal.log :refer [debug info]]
             [clojure.core.async :as async]
             [java-time.api :refer [after? before? days format instant local-date local-date-time plus zoned-date-time]]
-            [medley.core :refer [distinct-by]]
             [ring.util.response :refer [redirect]]
             [org.httpkit.client :as client]
             [org.httpkit.sni-client :as sni-client]
             [lambdaisland.uri :refer [uri]]
-            [net.cgrand.enlive-html :refer [attr? attr-values html-resource select text]]
             [voxmachina.itstore.postrepo :as its]
             [voxmachina.itstore.postrepo-fs :as itsfile]
-            [ui.layout :refer [->200 ->201 ->400 ->401 ->500 htm-tor html->hiccup page ses-tor]]
+            [ui.layout :refer [->200 ->201 ->400 ->401 htm-tor html->hiccup page ses-tor]]
             [ui.components])
   (:import java.util.UUID)
   (:gen-class))
@@ -133,15 +131,6 @@
   (if (includes? x "T")
     (str (instant x))
     (str (instant (zoned-date-time (local-date-time dt-fmt x) "UTC")))))
-
-(defn- isn-membership-edn [{:keys [path api? filters] :or {path sig-path api? false filters {}}} cat]
-  (let [xs-files (filter #(.isFile %) (file-seq (file path)))
-        xs-edn (map file->edn (map str xs-files))
-        xs-isn (filter #(some (:category %) #{cat}) xs-edn)
-        xs (distinct-by #(% :object) xs-isn)]
-    (group-by :correlation-id xs)))
-
-(defn- selector [src path] (first (map text (select src path))))
 
 (defn- sse-send [msg] (doseq [[k v] @subscribers] (async/>!! (:event-channel v) {:name "isn-signal" :data msg})))
 
