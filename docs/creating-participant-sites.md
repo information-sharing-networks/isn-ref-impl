@@ -112,7 +112,7 @@ Previous workng example
 git clone git@github.com:border-trade-demonstrators/btd-2.git isn-btd-2
 ```
 
-You will need to do this for each ISN you with the new PS to participate in. You may need to provide a passphrase for the SSH key if it is not added to the ssh agent.
+You will need to do this for each ISN you wish the new PS to participate in. You may need to provide a passphrase for the SSH key if it is not added to the ssh agent.
 
 Create the data-path location on the file system.
 
