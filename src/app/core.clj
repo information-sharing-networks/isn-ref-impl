@@ -252,30 +252,34 @@
      [:div.card-header [:h2 "Signal detail"]]
      [:div.card-body
       [:article.h-event
-       [:a.u-url {:href (str "/" (:permafrag sig))} [:h2.p-name (:object sig)]]
+       [:a.u-url {:href (str "/" (:permafrag sig))} [:p.p-name (:summary sig)]]
+       [:br]
        [:div
-        (when-not (some category meta-site-type)
-          [:h3 "Signal payload"]
-          (for [[k v] payload] [:div [:b (str (name k) " : ")] [:span (str v)]]))
-        [:h3 "Signal metadata"]
-        [:b "Summary: "] [:span.p-summary (:summary sig)]]
+        [:h4 "Signal payload"]
+        [:table.table.table-striped
+         [:thead [:tr [:th "Field"] [:th "Value"]]]
+         [:tbody
+          (when-not (some category meta-site-type)
+            (for [[k v] payload] [:tr [:th.table-info (str (name k))] [:td (str v)]]))]]
+        [:br]]
        [:div.h-product
-        [:div
-         [:b "Signal ID: "] [:span.u-identified (:signalId sig)]
-         [:div
-          [:b "Correlation ID: "] [:span.workflow-correlation (:correlation-id sig)]]]]
-       (when-not (some category meta-site-type)
-         [:div
-          (when providerMapping [:div "Provider mapping: " [:span providerMapping]])
-          [:div.h-review [:b "Priority : "] [:span.p-rating (:priority sig)]]
-          [:div [:b "Expires : "] [:span.dt-end (:end sig)]]])
-       (when (and start (:show-eta (config))) [:div [:b "ETA : "] [:span start]])
-       [:div "Provider : "
-        [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]
-       [:div "Published : " [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]
-       [:div "Category : " [:span.p-category category]]
-       [:div "ISN : " (:isn sig)]
-       (when syndicated-from [:div "Syndicated from : " [:a {:href syndicated-from} provider]])]]]))
+        [:h4 "Signal metadata"]
+        [:table.table.table-striped
+         [:thead [:tr [:th "Field"] [:th "Value"]]]
+         [:tbody
+          [:tr [:th.table-info "Object"] [:td.p-summary (:object sig)]]
+          [:tr [:th.table-info "Signal ID"] [:td.u-identified (:signalId sig)]]
+          [:tr [:th.table-info "Correlation ID"] [:td.workflow-correlation (:correlation-id sig)]]
+          (when-not (some category meta-site-type)
+            (when providerMapping [:tr [:th.table-info "Provider mapping"] [:td providerMapping]])
+            [:tr.h-review [:th.table-info "Priority"] [:td.p-rating (:priority sig)]]
+            [:tr [:th.table-info "Expires"] [:td.dt-end (:end sig)]])
+          (when (and start (:show-eta (config))) [:tr [:th.table-info "ETA"] [:td start]])
+          [:tr [:th.table-info "ISN"] [:td (:isn sig)]]
+          [:tr [:th.table-info "Category"] [:td.p-category category]]
+          [:tr [:th.table-info "Provider"] [:td [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]]
+          [:tr [:th.table-info "Published"] [:td [:time.dt-published {:datetime publishedDateTime} publishedDateTime]]]
+          (when syndicated-from [:tr [:th.table-info "Syndicated from"] [:td [:a {:href syndicated-from} provider]]])]]]]]]))
 
 ;;;; Views
 ;;;; ===========================================================================
