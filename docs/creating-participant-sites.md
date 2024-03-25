@@ -2,7 +2,39 @@
 
 ## Creating participant sites in an existing ISN
 
-### Create code and config directory on machine where ISN is hosted
+### Option 1 - (automatic) run configuration script on machine where you are deploying ISN Participant Site
+
+#### Step 1 (remote machine)
+
+Use ssh to navigat to remote machine.
+```bash
+ssh ISN-MACHINE
+```
+
+Run the configuration.sh script which is in the same directory as any ISN Participant Sites and the isn.tgz file deployed from your development machine.
+```bash
+./configure.sh
+```
+
+#### Step 2 (remote machine)
+
+In the Participant Site directory you chose for the first prompt in the configuration process, in config.edn uncomment the 'isns' include and merge line and set to the correct ISN.
+
+Clone the Github repository for the ISN that you want to join in the new isn directory.
+
+Meta example:
+```bash
+git clone git@github.com:your-organisation/your-isn-repository.git the-directory-in-the-isns-include
+```
+
+Previous workng example
+```bash
+git clone git@github.com:border-trade-demonstrators/btd-2.git isn-btd-2
+```
+
+You will need to do this for each ISN you wish the new PS to participate in. You may need to provide a passphrase for the SSH key if it is not added to the ssh agent.
+
+### Option 2 - (manual) create code and config directory on machine where you are deploying ISN PS
 
 #### Step 1 (remote machine)
 
