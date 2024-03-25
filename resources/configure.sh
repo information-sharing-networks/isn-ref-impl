@@ -42,7 +42,7 @@ then
 
     echo "Enter an ISN you would like this Participant Site to participate in e.g. the-isn.info-sharing.network"
     read -p ">" isn
-    sed -i "10 i $isn #{ #ref [:user] }" config.edn
+    sed -i "10 i :$isn #{ #ref [:user] }" config.edn
 
     sed -i "21 i :data-path \"$HOME/.isn/$dirname/data\"" config.edn
     mkdir -p $HOME/.isn/$dirname/data/signals
