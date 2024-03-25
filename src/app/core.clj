@@ -245,7 +245,7 @@
                   [:i.bi.bi-list-nested] " "
                   [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]])])]))]]))
 
-(defn signal-item [signal-id]
+(defn signal-item [{:keys [cfg] :as req} signal-id]
   (let [f-name (str sig-path "/" signal-id ".edn")
         {:keys [category payload provider providerMapping publishedDateTime start syndicated-from] :as sig} (file->edn f-name)]
     [:div.card
@@ -274,7 +274,7 @@
             (when providerMapping [:tr [:th.table-info "Provider mapping"] [:td providerMapping]])
             [:tr.h-review [:th.table-info "Priority"] [:td.p-rating (:priority sig)]]
             [:tr [:th.table-info "Expires"] [:td.dt-end (:end sig)]])
-          (when (and start (:show-eta (config))) [:tr [:th.table-info "ETA"] [:td start]])
+          (when (and start (:show-eta cfg)) [:tr [:th.table-info "ETA"] [:td start]])
           [:tr [:th.table-info "ISN"] [:td (:isn sig)]]
           [:tr [:th.table-info "Category"] [:td.p-category category]]
           [:tr [:th.table-info "Provider"] [:td [:a.h-card.p-name {:href (str "https://" provider) :target "_blank" :rel "author"} provider]]]
@@ -364,7 +364,7 @@
 
 (defn privacy [{:keys [session] :as req}] (page req head body (html->hiccup (slurp "resources/public/html/privacy.html"))))
 
-(defn signal [{:keys [path-params] :as req}] (page req head body (signal-item (:signal-id path-params))))
+(defn signal [{:keys [path-params] :as req}] (page req head body (signal-item req (:signal-id path-params))))
 
 ;;;; API
 ;;;; ===========================================================================
