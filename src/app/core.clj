@@ -166,7 +166,8 @@
       [:li.nav-item [:a.nav-link {:href "/dashboard"} "Dashboard"]]
       [:li.nav-item [:a.nav-link {:href "/about"} "About"]]
       [:li.nav-item [:a.nav-link {:href "/documentation"} "Documentation"]]
-      (when (:user session) [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])]]]])
+      (when (:user session) [:li.nav-item [:a.nav-link {:href "/account"} "Account"]])
+      (when (:user session) [:li.nav-item [:a.nav-link {:href "/logout"} "Logout"]])]]]])
 
 (defn info-mirror []
   [:ui.c/alert-info {}
@@ -337,6 +338,8 @@
       (-> (redirect (:redirect-uri cfg)) (assoc :session {:user user :token access_token}))
       (-> (redirect "/")))))
 
+(defn logout [{:keys [cfg session]}] (-> (redirect "/") (assoc :session (dissoc session :user :token))))
+
 (defn about [{:keys [cfg session] :as req}]
   (page req head body
         (if (or (:user session) (dev? cfg))
@@ -470,6 +473,7 @@
 (def routes
   #{["/"                                    :get  (conj ses-tor `cfg-tor `home)]
     ["/login"                               :get  (conj ses-tor `cfg-tor `login)]
+    ["/logout"                              :get  (conj ses-tor `cfg-tor `logout)]
     ["/indieauth-redirect"                  :get  (conj ses-tor `cfg-tor `indieauth-redirect)]
     ["/dashboard"                           :get  (conj ses-tor `cfg-tor `dashboard)]
     ["/account"                             :get  (conj ses-tor `cfg-tor `account)]
