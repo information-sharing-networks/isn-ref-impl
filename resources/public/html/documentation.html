@@ -11,7 +11,7 @@
 
     <div class="h-card card">
         <div class="card-header">
-            <h1>What is the ISN?</h1>
+            <h1>What is an ISN?</h1>
         </div>
         <div class="card-body">
             <p>ISNs are general purpose information sharing networks (extensible to be useful within many domains). They
@@ -20,20 +20,20 @@
                 which they can publish
                 signals. Signals may be syndicated via paramater (as they are contributed) to a specified mirror (a
                 mirror may be provided as part of this demonstrator ISN).</p>
-            <p>Where access control is configured accordingly participants may view the signals contributed by others by
+            <p>Where access control is configured accordingly participants may contribute signals to that site or view the signals contributed by others by
                 logging in to other participant sites.</p>
-            <p>Any ISN participant can reply to (comment on) a signal contributed by another - this permits a growing
-                set of opinions/claims/attestations to form around the original signal in a flexible and distributed
-                workflow. The <a href="https://www.w3.org/TR/webmention/" target="_blank">W3C Webmention</a> protocol is
+            <p>Any ISN participant can reply to a signal contributed by another - this allows additional information related to the original signal
+                - corrections, opinions, claims, attestation etc - to be captured.
+                The <a href="https://www.w3.org/TR/webmention/" target="_blank">W3C Webmention</a> protocol is
                 used in this reference example ISN to permit authenticated parties to associate their
-                opinions/claims/attestations to signals on the site of those who contribute them (and on any mirror
-                sites which have been setup within the ISN).</p>
+                replies to signals on the site of those who contribute them (and on any mirror
+                sites which have been setup within the ISN). </p>
             <p>Information within ISNs is represented via the <a
                     href="https://github.com/information-sharing-networks/signals/blob/main/README.md#signal-definition">signals
                     protocol</a> internally.
                 For interoperabililty purposes the signal implementation selected for the demonstrator ISNs is a <a
                     href="https://microformats.org/wiki/h-event" target="_blank">Microformat 2
-                    'event'</a> which we use to reason over not just future events but also events from the past.
+                    'event'</a>.
             </p>
         </div>
     </div>
@@ -45,17 +45,16 @@
         <div class="card-body">
             <p>An ISN is comprised of four building blocks:</p>
             <ul>
-                <li>An ISN network site (which is the entry point into the ISN and provides detail on participants
-                    sites, mirrors and the intent behind the ISN etc). Network sites are optional</li>
-                <li>ISN participant sites (which participants use to publish signals into the ISN - N.B. it is possible
-                    for a participant to have more than one site in an ISN)</li>
-                <li>ISN mirror sites (gathers signals of various
-                    categories which are syndicated to it by ISN participants to simplify the process for participants
-                    looking to subscribe to insight published by others). Mirror sites are optional</li>
+                <li>ISN participant sites which participants use to publish signals into the ISN</li>
                 <li>A governance framework which sets out how the ISN and its participants are to operate (this may be
                     one of a number of pluggable variants e.g. Collaboration Agreement)</li>
+                <li>An optional ISN network site (which is the entry point into the ISN and provides detail on participants
+                    sites, mirrors and the intent behind the ISN etc). </li>
+                <li>One or more optional ISN mirror sites (mirror sites gather signals of various
+                    categories which are syndicated to it by ISN participants. These sites can help to simplify the process for participants
+                    looking to subscribe to signals).</li>
             </ul>
-	    <p>Network sites are optional as an ISN may consist entirely of Participant Sites running in a peer mode (e.g. the network is in a 'peer2peer setup').</p>
+	    <p>Because network and mirrors sites are optional, an ISN may consist entirely of Participant Sites running in a peer mode (e.g. the network is in a 'peer2peer setup').</p>
         </div>
     </div>
 
@@ -65,24 +64,62 @@
         </div>
         <div class="card-body">
             <h3 class="card-title">Getting Started</h3>
-            <p>As a member of the ISN (or EoT) Network Executive Committee you will mostly be administering one or more
+            <p>As a member of the ISN Network Executive Committee you will mostly be administering one or more
                 ISNs.</p>
             <h4 class="card-title">Setup</h4>
             <p>
                 TODO: TBD
             </p>
-            <h4 class="card-title">Creating an ISN signal</h4>
+        </div>
+    </div>
+    <div class="h-card card">
+        <div class="card-header">
+            <h2 class="card-title">Authenticating on a particpant site</h2>
+        </div>
+        <div class="card-body">
             <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
                 <a href="https://www.w3.org/TR/indieauth/" target="_blank">W3C Indieauth (OAuth-2)</a>.
+
+                in the reference ISN implementation github is used as the indieauth authentication provider:
+             </p>
+            <ol>
+                <li>
+                Your participant site domain name is used to sign-in to both your own site and other participant sites you have permission to use.
+                </li>
+                <li>
+                When you login to a participant site using your domain name, the ISN webapp running on the server will request an authorisaton endpoint from the 
+                specified domain (this is specified in the config.edn file installed on your server). The ISN webapp then redirects the User to their authorization endpoint.
+                </li>
+                <li>
+                The github authentication provider will authenticate login requests when a reference to the particpant site being used to login is present on the User's github profile page.
+                (The link on the github home page should contain a rel="me" property: <br>
+                 &lt;a href="https://isnsite.example.org" rel="me"&gt;isnsite.example.com&lt;/a&gt; 
+                 <br>
+                ... one way to add this is to create a new "social link" in your github profile) 
+                </li>
+                <li>
+                The authorization endpoint issues a temporary authorization code, and sends it to the ISN webapp.
+                </li>
+                <li>
+                The app checks the code with the authorization endpoint, and if the code is valid and if the user’s identifier matches the identifier the authorization endpoint gives, 
+                the login is completed and the user can use the webapp.
+                </li>
+            </ol>
+
+            <p>
+                once you have authenticated on your own participant site you can retrieve the bearer token needed to use the ISN API.  
+                This token can be used to submit or retrieve signals from other sites where your site have been added as a contributer.
             </p>
             <p>
-                Once you have a bearer token you can use your ISN site Micropub endpoint to contribute signals via API
-                with content type application/x-www-form-urlencoded similar to the below.
+                You can also use your token with the ISN site Micropub endpoint to make changes to your site configuration
             </p>
             <p>For example to onboard a new ISN participant</p>
             <pre><code>curl -i -X POST -d h=event -d category=isn-membership-participant-update -d category=isn@sample-isn.my-example.xyz -d "name=acme.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" https://your-isn-site.my-example.xyz/micropub</code></pre>
             <p>For example to add a new mirror</p>
             <pre><code>curl -i -X POST -d h=event -d category=isn-membership-mirror-update -d category=isn@sample-isn.my-example.xyz -d "name=sample-isn-mirror.my-example.xyz" -d "summary=added to ISN" -H "Authorization: Bearer XXX" https://your-isn-site.my-example.xyz/micropub</code></pre>
+            <p> 
+                these POST requests should be made with with content type "application/x-www-form-urlencoded"
+            </p>
         </div>
     </div>
 
@@ -91,17 +128,9 @@
             <h2>ISN participants</h2>
         </div>
         <div class="card-body">
-            <h3 class="card-title">Getting Started</h3>
-            <p>As an ISN participant you will mostly be working with your own ISN site(s).</p>
-            <h4 class="card-title">Setup</h4>
-            <p>
-                You will need to get help setting up or configuring your own ISN site which contributes signals into the
-                ISN you are participating in on your behalf. Please reach out to <a href="#support">Support</a>.
-            </p>
-
             <h4 class="card-title">Viewing signals</h4>
             <p>Only authenticated organisations can see signals on any ISN site or syndicator site (mirror) whether the
-                ISN is moving synthesised signals or live ones. This ISN is open, multilateral by default but does
+                ISN. This ISN is open, multilateral by default but does
                 permit bilateral self sovereign information sharing.</p>
 
             <p>You can view signals in three ways:</p>
@@ -131,8 +160,7 @@
 
             <h4 class="card-title">Creating a signal</h4>
 	    <p>More detailed examples for creating signals (including optionality of fields) can be found in your ISN Github Repository in the 'sample-signal-creation' document. In this documentation we outline the basics.</p>
-            <p>Only authenticated organisations can contribute signals (using Micropub API or Client) into the ISN via
-                <a href="https://www.w3.org/TR/indieauth/" target="_blank">W3C Indieauth (OAuth-2)</a>. This ISN does
+            <p>Only authenticated organisations can contribute signals (see above for details). This ISN does
                 not trace contributed signals back to end users - part of what we
                 are doing is exploring ways to move information that do not experience the same level of information
                 governance friction.
