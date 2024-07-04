@@ -110,7 +110,7 @@ function doConfig() {
 
     echo "..preparing config.edn file.  Please follow prompts below "
     if ! gawk ' { gsub(";.*","");if ( $0 ~ "^[[:space:]]*$" ) next; print $0 }' < $CONFIG_TEMPLATE > $OUTPUT_FILE ; then
-        echo "error could not copy $CONFIG_TEMPLATE to $OUTPUT_FILE" >&2
+        echo "error could not copy $CONFIG_TEMPLATE to $OUTPUT_FILE. Did you remember to use the -i option to install the software?" >&2
         exit 1
     fi
 

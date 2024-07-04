@@ -17,7 +17,7 @@ if ! isRoot ; then
   exit 1
 fi
 
-while getopts "sv" arg; do
+while getopts "svr" arg; do
     case $arg in
       s) START=1;;
       r) STOP=1;;
