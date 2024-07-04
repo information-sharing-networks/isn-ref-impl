@@ -249,7 +249,7 @@ function doSystemctl() {
 
     echo service config created: $target 
 
-    shtarget=$SITE_ROOT_DIR/isn_service.sh
+    shtarget=$SITE_ROOT_DIR/isn-service.sh
 
     if ! sed -e "s:domain-name-here:$user:g" < $ISN_SERVICE_SCRIPT_TEMPLATE  >  $shtarget; then
         echo "error: could not create $shtarget " >&2
