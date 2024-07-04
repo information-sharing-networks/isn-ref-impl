@@ -292,6 +292,10 @@ if [ -z "$SITE_ROOT_DIR" ]; then
     usage
 fi
 
+if ! realpath $SITE_ROOT_DIR 2>/dev/null ; then 
+    echo "error: the specified subdir does not exist" >&2
+    exit 1
+fi
 SITE_ROOT_DIR=$(realpath $SITE_ROOT_DIR) 
 if [ "$NGINX" ] || [ "$SYSTEMCTL" ]; then
     if  ! isRoot ; then
