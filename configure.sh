@@ -264,8 +264,7 @@ function doSystemctl() {
     echo "do you want to start the service? (y/n)"
     read -p "> " answer
     if [ "$answer" = "y" ]; then
-        systemctl daemon-reload
-        bash $shtarget
+        bash $shtarget -s 
     fi
     return
 }
