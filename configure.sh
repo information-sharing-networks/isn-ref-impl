@@ -127,7 +127,7 @@ function doConfig() {
     echo
 
     echo "-----------"
-    echo "Enter a  name for your Participant Site - this will display on the web dashboard as a title e.g. ISN Site Acme Inc"
+    echo "Enter a description for your Participant Site - this will display on the web dashboard as a title e.g. ISN Site Acme Inc"
     read -p "> " sitename
     updateConfig site-name "\"$sitename\"" < $OUTPUT_FILE > $TMP_FILE && mv $TMP_FILE $OUTPUT_FILE
     echo
@@ -332,3 +332,4 @@ if [ "$SYSTEMCTL" ]; then
     doSystemctl
     echo "systemctl config complete"
 fi
+echo "script complete"
