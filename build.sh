@@ -30,6 +30,20 @@ if [ "$BUILD_TYPE" != "current" ] && [ "$BUILD_TYPE" != "patch" ] && [ "$BUILD_T
     usage
 fi
 
+dir=$(pwd)
+dir=$(basename $dir)
+if [ "$dir" != "isn-ref-impl" ] || [ ! -f build.clj ]; then
+    echo "error: you must run this from a cloned isn-ref-impl directory" 2>&1
+    exit 1
+fi
+
+if [ ! -d build ]; then
+    if ! mkdir build ; then
+        echo "error: could not create build dir" 2>&1
+        exit 1
+    fi
+fi
+
 if [ ! -f version.edn ]; then
     echo "no version.edn file found" >&2
     exit 1
