@@ -142,9 +142,9 @@ function doConfig() {
     echo "by default signals will be  kept in $SITE_ROOT_DIR/data/signals - Press <return> to accept the default or enter a location where the signals directory should be created. "
     read -p "> " datadir
     if [ -z "$datadir" ];then
-        targetdir=$SITE_ROOT_DIR/data/signals
+        targetdir=$SITE_ROOT_DIR/data
     else
-        targetdir=$datadir/signals
+        targetdir=$datadir
     fi
 
     echo "..creating data directory $targetdir"
