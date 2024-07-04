@@ -82,7 +82,6 @@ function updateConfig() {
 }
 
 function doInstall() {
-    echo "--------INSTALL----------"
     if [ -d "$SITE_ROOT_DIR" ];then
         echo "$SITE_ROOT_DIR already exists - assuming you want to start the installation from scratch, remove $SITE_ROOT_DIR first" 2>&1
         exit 1
@@ -94,7 +93,7 @@ function doInstall() {
         exit 1
     fi
 
-    echo "..installing software"
+    echo "..installing ISN software"
     if ! tar xzf $BUILD_FILE --directory $SITE_ROOT_DIR; then
         echo "could not unzip $BUILD_FILE" 2>&1
         exit 1;
@@ -102,7 +101,6 @@ function doInstall() {
 }
 
 function doConfig() {
-    echo "--------CONFIG----------"
     OUTPUT_FILE=$SITE_ROOT_DIR/config.edn
     TMP_FILE=$SITE_ROOT_DIR/config.edn.tmp
 
@@ -110,14 +108,14 @@ function doConfig() {
         echo "error: $OUTPUT_FILE already exists.  If you want to start the config file from scratch, remove this first"
     fi
 
-    echo "..copying template config"
+    echo "..preparing config.edn file.  Please follow prompts below "
     if ! gawk ' { gsub(";.*","");if ( $0 ~ "^[[:space:]]*$" ) next; print $0 }' < $CONFIG_TEMPLATE > $OUTPUT_FILE ; then
         echo "error could not copy $CONFIG_TEMPLATE to $OUTPUT_FILE" >&2
         exit 1
     fi
 
     echo "-----------"
-    echo "Enter a port for the service to run on one scheme is for a 1st isn 5001 - 5010, 2nd isn 5011 - 5020, make sure the port is not in use or this PS won't start"
+    echo "Enter a port for the service to run on. Make sure the port is not already in use."
     read -p "> " port
     updateConfig port "\"$port\"" < $OUTPUT_FILE > $TMP_FILE && mv $TMP_FILE $OUTPUT_FILE
     echo
@@ -159,6 +157,9 @@ function doConfig() {
     echo "-----------"
     echo "Enter the github repository for the ISN signal types you would like this site to process. 
     e.g  git@github.com:border-trade-demonstrators/btd-2.git
+
+    if you would like to add more than one signal type please enter each github repository uri on separate line.
+
     These repos will be cloned to $SITE_ROOT_DIR (so that the service has a copy of the signal definitions) and refered to in $SITE_ROOT_DIR/config.edn
     If this account is not setup with github access type <x> below to exit the script and finish the configuration by hand"
     while true
@@ -309,20 +310,24 @@ if [ "$BUILD_FILE" ]; then
         echo "can't open build file $BUILD_FILE" 2>&1
         usage
     fi
+    echo "--------INSTALL----------"
     doInstall
     echo "Install complete"
 fi
 
 if [ "$CONFIG" ];then
+    echo "--------CONFIG----------"
     doConfig
     echo "Config complete"
 fi
 
 if [ "$NGINX" ]; then
+    echo "--------NGINX----------"
     doNginx
     echo "nginx config complete"
 fi
 if [ "$SYSTEMCTL" ]; then
+    echo "--------SYSTEMCTL----------"
     doSystemctl
     echo "systemctl config complete"
 fi
