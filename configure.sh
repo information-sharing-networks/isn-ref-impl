@@ -1,7 +1,7 @@
 # todo signal def sub dir
 function usage(){
     echo "usage: $0 -r root dir for site files [ -i build file ]  [ -cns ] 
-    -b install the ISN software 
+    -i install the ISN software 
     -c update config.edn
     -n set up nginx site (requires root access)
     -s set up systemctl startup script (requires root access)
@@ -247,20 +247,22 @@ function doSystemctl() {
         exit 1
     fi
 
+    echo service config created: $target 
 
     shtarget=$SITE_ROOT_DIR/isn_service.sh
-
-    echo service config created: $target 
 
     if ! sed -e "s:domain-name-here:$user:g" < $ISN_SERVICE_SCRIPT_TEMPLATE  >  $shtarget; then
         echo "error: could not create $shtarget " >&2
         exit
     fi
+
+    chmod +x $shtarget
     echo "isn-service.sh script created: $shtarget"
 
     echo "do you want to start the service? (y/n)"
     read -p "> " answer
     if [ "$answer" = "y" ]; then
+        systemctl daemon-reload
         bash $shtarget
     fi
     return
