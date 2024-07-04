@@ -1,19 +1,30 @@
-{:port 5001
+{
+ :port 0000; port that the ISN service will run on
  :version #include "version.edn"
  :site-name "ISN Site"
- ;:user "" ; uncomment this - used to check the id from a bearer token (the participant owner of this isn site
+ :user "isn.example.com" ; fully qualified domain name used to check the id from a bearer token (the participant owner of this isn site
  :rel-root #join ["https://" #ref [:user]] ; used as a prefix before rel links created by adding a scheme to the previously define user (e.g. https://your.domain.tld)
- :site-root #ref [:rel-root] ; this will be the same as rel-root in production but may be changed to localhost for dev mode locally N.B. override this for localhost
- :rel-me-github "https://github.com/some-account" ; Github account/profile uri (e.g. https://github.com/acme-user)
- 
+ :site-root #ref [:rel-root] ; this will be the same as rel-root in production but may be changed to localhost for dev mode locally 
+ :rel-me-github "https://github.com/some-account" ; Github account/profile uri (e.g. https://github.com/acme-user) - used to confirm ownersip of the site when authenticating
+
+ ; authcns lists the supported signals and the users (domains) that can contribute/read signals on this site.
+ ; signals defintions are named with a uri, see example config here https://github.com/border-trade-demonstrators/btd-1/blob/main/isn-btd-1.edn
+ ; as a minimum the :user of this site must be listed. additional domains can be added after the :user entry
  ; N.B. careful with :authcns - in some cases you need to sign a Collaboration Agreement to participate in an ISN
+ ; example
  ;:authcns {
-   ;:sample-isn-1.my-example.xyz #{#ref [:user]} ; must have user in after that insert domains appropriate to access control needs
- ;} ; uncomment - used if you would like to check the id from a bearer token e.g. if env id dev :authcn-ids #{"example.com"}
+ ;  :sample-signal1.info-sharing.network #{
+ ;      #ref [:user]
+ ;  } 
+ ;  :sample-signal2.info-sharing.network #{
+ ;      #ref [:user]
+ ;  } 
+ ;} 
+ :authcns { }
  
+ ; the isns section used to configure the signal types handled by this server
  ; N.B. careful with :isns - in some cases you need to sign a Collaboration Agreement to participate in an ISN
- ; used to configure attreibutes/behavior per ISN and signal-category
- ;:isns #merge [#include "isn-x/sample-isn-1.edn" #include "isn-y/sample-isn-2.edn"]
+ :isns #merge [ #include sample-signal1.info-sharing.network  #include sample-signal2.info-sharing.network ]
  
  :microsub-uri "https://your.domain.tld/microsub/id" ; uri for microsub - e.g. setup via aperture
  :show-eta true ; it is possible to specify a start 'instant' - this can be used for example as an ETA (signals dashboard components)
@@ -25,7 +36,7 @@
  :redirect-uri "/" ; used to point to the URI you are redirected to upon login, override if you need to
  :data-path "" ; used to point to a data directory somewhere on disk e.g. /home/you/.isn.isn-name/site-acme/data
  :environment "production" ; setting the env to dev will remove the need to supply a valid token
- :dev-site "https://signals-provider.my-example.xyz" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
+ :dev-site "https://signals-provider.example.org" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
  :csp-settings {
    :connect-src #ref [:site-root]

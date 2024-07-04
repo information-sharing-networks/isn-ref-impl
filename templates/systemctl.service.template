@@ -1,0 +1,10 @@
+[Unit]
+Description=domain-name-here ISN service
+
+[Service]
+WorkingDirectory=site-root-dir-here
+ExecStart=/usr/local/bin/clj -X app.core/-main
+TimeoutSec=300
+
+[Install]
+WantedBy=multi-user.target

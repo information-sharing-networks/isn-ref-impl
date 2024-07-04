@@ -8,7 +8,6 @@
 nohup.out
 config.edn
 deploy.sh
-version.edn
 isn-*.edn
 isn.tgz
 key.pub
