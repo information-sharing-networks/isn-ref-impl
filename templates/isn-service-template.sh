@@ -1,8 +1,9 @@
 function usage() {
-  echo "usage: $0 -r site root directory [ -sv ]
-      when supplied with no parameters this script will start the domain-name-here service 
+  echo "usage: $0 -r site root directory [ -srv ]
+      control the domain-name-here service 
 
-      -s stop the service
+      -s start the service
+      -r stop the service
       -v service status " >&2
   exit 1
 }
@@ -18,13 +19,14 @@ fi
 
 while getopts "sv" arg; do
     case $arg in
-      s) STOP=1;;
+      s) START=1;;
+      r) STOP=1;;
       v) STATUS=1;;
       *) usage;;
     esac
 done
 
-if [ -z "$STOP" ] && [ -z "$STATUS" ] && [ $# -ne 0 ] ; then
+if [ -z "$STOP" ] && [ -z "$STATUS" ] && [ -z "$START" ]; then
     usage 
 fi
 
@@ -55,5 +57,7 @@ if [ "$STATUS" ]; then
     exit
 fi
 
-echo starting service
-systemctl start $service
+if [ "$START" ]; then 
+    echo starting service
+    systemctl start $service
+fi
