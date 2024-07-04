@@ -1,10 +1,49 @@
 #/bin/bash
 
-if [[ $# -eq 0 ]] ; then
-    echo 'specify either patch or minor to build version e.g. ./deploy.sh patch'
-    exit 0
+function usage(){
+    echo "usage:  $0 [ -t (run tests) ] -b current|patch|minor" 2>&1
+	exit 1
+}
+
+while getopts "tb:" arg; do
+  case $arg in
+    b) export BUILD_TYPE=$OPTARG ;;
+    t) export RUN_TESTS=1;;
+  esac
+done
+
+if [ -z "$BUILD_TYPE" ];then
+    echo '-b (build type) is mandatory' 2>&1
+    usage
+fi
+if [ "$BUILD_TYPE" != "current" ] && [ "$BUILD_TYPE" != "patch" ] && [ "$BUILD_TYPE" != "minor" ]; then 
+    echo 'specify a build type of current, patch or minor (use patch/minor to increment version.edn) ' 2>&1
+    usage
 fi
 
-clj -X:test
-clj -T:build $1
-tar cvzf isn.tgz config config.template.edn deps.edn README.md resources scripts src START.template STOP.template version.edn
+if [ ! -f version.edn ]; then
+    echo "no version.edn file found" >&2
+    exit 1
+fi
+if [ "$RUN_TESTS" ];then
+    echo running tests
+    clj -X:test
+fi
+
+echo creating build for $BUILD_TYPE version
+clj -T:build $BUILD_TYPE
+
+echo creating tar file
+tar czf isn.tgz config config.template.edn deps.edn README.md resources scripts src START.template STOP.template version.edn
+
+v=$(cat version.edn |gawk 'match($0,/.*([0-9]+.[0-9]+.[0-9]+).*/,a) { print a[1] } ')
+echo $v  debug
+
+
+buildfile=build/isn.${v}.tgz
+
+mv isn.tgz $buildfile
+
+echo $buildfile  created
+
+

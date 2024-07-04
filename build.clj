@@ -27,6 +27,10 @@
     (b/uber {:class-dir jar-content :uber-file uf :basis basis :main 'app.core})
     (println (format "Uber file created: \"%s\"" uf))))
 
+(defn current [_] 
+  (let [v (read-string( slurp "version.edn" )) ]
+  (println "creating version : " v)))
+
 (defn patch [_]
   (println "bumping version patch")
   (let [v (->> "version.edn" slurp read-string)
