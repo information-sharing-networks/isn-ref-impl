@@ -152,6 +152,7 @@ function doConfig() {
         echo "error: can't create the signals data directory: $targetdir"
         exit 1
     fi
+    updateConfig data-path "\"$targetdir\"" < $OUTPUT_FILE > $TMP_FILE && mv $TMP_FILE $OUTPUT_FILE
     echo
 
     echo "-----------"
