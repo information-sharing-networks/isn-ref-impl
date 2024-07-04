@@ -40,7 +40,7 @@ function processSignalRepos() {
 
         isn=$(echo $signalfile |sed -e "s:$SITE_ROOT_DIR\/::")
         authcns=$(printf '%s\n  :%s #{\n    #ref [:user]\n  }' "$authcns" "$signalname")
-        isns=$(printf '%s #include %s' "$isns" "$isn")
+        isns=$(printf '%s #include "%s"' "$isns" "$isn")
     done
     authcns=$(printf '%s\n }' "$authcns")
     isns=$(printf '%s ]' "$isns")
