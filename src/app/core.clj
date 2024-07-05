@@ -206,18 +206,17 @@
 
 (defn signal-list-item [{:keys [isns show-eta] :as cfg} {:keys [category isn payload permafrag provider start summary] :as sig}]
   (let [domain-cat (first (remove #(includes? % "isn@") category))
-        show-keys (get-in ((keyword isn) isns) [:signals (keyword domain-cat) :list-payload-keys])]
-    [:div
+        show-keys (get-in ((keyword isn) isns) [:signals (keyword domain-cat) :list-payload-keys])]; see signal definition edn
+    [:div 
+     [:p [:span [:b "ISN signal type : "] (str isn) ] ]
+     [:p [:b "Provider : "] [:a.p-author.h-card {:href (str "https://" provider) :target "_blank"} provider] ]
+     [:p [:b "Published : "] [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)] ]
      [:div [:a.p-summary {:href permafrag} summary]]
      [:ul
-      (for [[k v] (select-keys payload show-keys)] [:li [:b k] ": " (str v)])]
+      (for [[k v] (select-keys payload show-keys)] [:li [:b k] ": " (str v)])] 
      [:div
-      (when (and start show-eta) [:div [:b "ETA : "] [:span start]])
-      [:b "Provider : "]
-      [:a.p-author.h-card {:href (str "https://" provider) :target "_blank"} provider]
-      ", "
-      [:b "Published : "]
-      [:time.dt-published {:datetime (:publishedDateTime sig)} (:publishedDateTime sig)]]]))
+      (when (and start show-eta) [:div [:b "ETA : "] [:span start]]) 
+      ]]))
 
 (defn signals-list [f-sig-list f-sig-item {:keys [cfg query-params session]} category]
   (let [sorted-xs (f-sig-list {:cfg cfg :api? false :user (:user session) :filters (or query-params {})} category)]
@@ -257,7 +256,7 @@
         [:table.table.table-striped
          [:thead [:tr [:th "Field"] [:th "Value"]]]
          [:tbody
-          [:tr [:th.table-info "Object"] [:td.p-summary (:object sig)]]
+          [:tr [:th.table-info "Summary"] [:td.p-summary (:object sig)]]
           [:tr [:th.table-info "Signal ID"] [:td.u-identified (:signalId sig)]]
           [:tr [:th.table-info "Correlation ID"] [:td.workflow-correlation (:correlation-id sig)]]
           (when-not (some category meta-site-type)
