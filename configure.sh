@@ -148,7 +148,7 @@ function doConfig() {
     fi
 
     echo "..creating data directory $targetdir"
-    if ! mkdir -p $targetdir ; then
+    if ! mkdir -p $targetdir/signals ; then
         echo "error: can't create the signals data directory: $targetdir"
         exit 1
     fi
