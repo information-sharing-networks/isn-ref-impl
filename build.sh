@@ -59,9 +59,7 @@ clj -T:build $BUILD_TYPE
 echo creating tar file
 tar czf isn.tgz config templates deps.edn README.md resources src version.edn
 
-v=$(cat version.edn |gawk 'match($0,/.*([0-9]+.[0-9]+.[0-9]+).*/,a) { print a[1] } ')
-echo $v  debug
-
+v=$(sed -r "s/.*([0-9]+\.[0-9]+\.[0-9]+).*/\1/" < version.edn)
 
 buildfile=build/isn.${v}.tgz
 
