@@ -1,15 +1,27 @@
 function usage() {
   echo "usage: $0 -s server
   -p btd1|btd2  (post sample signal)
+  -c correlation_id (optional, use with -p)
   -g all (get signals)" >&2
   exit 1
 }
 function getAllSignals() {
     curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  $server/signals
 }
+function getETA() {
+  if [ "$(uname)" = "Darwin" ]; then
+      date -u -v+2d +"%Y-%m-%dT%H:00:00Z"
+  else
+      date -u -d "+2 days" +"%Y-%m-%dT%H:00:00"Z
+  fi
+}
 function btd1Signal() {
     u=$1
     e=$2
+    if [ "$3" ];then
+      c=$(printf '"correlation-id": "%s",' "$3")
+    fi
+
     cat <<!
       {
           "h": "event",
@@ -20,6 +32,7 @@ function btd1Signal() {
             "pre-notification",
             "isn@btd-1.info-sharing.network"
           ],
+          $c
           "payload": {
             "cnCodes": [
               "010594",
@@ -80,11 +93,12 @@ if [ -z "$BEARER_TOKEN" ]; then
     exit 1;
 fi
 
-while getopts "s:p:g:" arg; do
+while getopts "s:p:g:c:" arg; do
     case $arg in
         s) server=https://$OPTARG;;
         p) post_type=$OPTARG;;
         g) get_type=$OPTARG;;
+        c) correlation_id=$OPTARG;;
         *)  usage;;
     esac
 done
@@ -94,22 +108,29 @@ if [ -z "$server" ]; then
     usage
 fi
 
+if [ "$correlation_id" ] && [ -z "$post_type" ]; then
+  echo "error: the -c correlation id option cam only be used with -p" 2>&1
+  usage
+fi
+
 if [ -z "$post_type" ] && [ -z "$get_type" ]; then
     echo "error: you must specify -g or -p " >&2
     usage
 fi
 
 
+
 if [ "$post_type" ]; then
-    id=$(tr -dc A-Z0-9 </dev/urandom | head -c 4)
-    eta=$(date -u -d "+2 days" +"%Y-%m-%dT%H:00:00"Z)
+    id=$(LC_ALL=C tr -dc A-Z0-9 </dev/urandom | head -c 4)
+    eta=$(getETA)
     echo "transaction ref: $id"
 
     case $post_type in
     btd1) 
-        curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd1Signal $id $eta)" $server/micropub |grep HTTP;;
+    echo "debug $post_type"
+        curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd1Signal $id $eta $correlation_id)" $server/micropub |grep HTTP;;
     btd2)
-        curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd2Signal $id $eta)" $server/micropub |grep HTTP;;
+        curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd2Signal $id $eta $correlation_id)" $server/micropub |grep HTTP;;
     *) echo unknown post option  >&2; usage ;;
     esac
 fi
