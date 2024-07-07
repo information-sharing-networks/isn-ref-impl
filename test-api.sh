@@ -41,7 +41,7 @@ function btd1Signal() {
             "commodityDescription": "Chicken 40%, beef 60%",
             "countryOfOrigin": "GB",
             "chedNumbers": [
-              "CHEDA .GB.YYYY.XXXXXXX"
+              "CHEDPP.GB.YYYY.XXXXXXX"
             ],
             "unitIdentification": {
               "ContainerNumber": "12346"
@@ -56,6 +56,9 @@ function btd1Signal() {
 function btd2Signal() {
     u=$1
     e=$2
+    if [ "$3" ];then
+      c=$(printf '"correlation-id": "%s",' "$3")
+    fi
     cat <<!
       {
           "h": "event",
@@ -66,6 +69,7 @@ function btd2Signal() {
             "lab-sample-industry-unsatisfactory",
             "isn@btd-2.info-sharing.network"
           ],
+          $c
           "payload": {
               "authorisedPesticides": true,
               "acceptedHazardLevel": 2,
@@ -127,7 +131,6 @@ if [ "$post_type" ]; then
 
     case $post_type in
     btd1) 
-    echo "debug $post_type"
         curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd1Signal $id $eta $correlation_id)" $server/micropub |grep HTTP;;
     btd2)
         curl --silent -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $BEARER_TOKEN"  -d "$(btd2Signal $id $eta $correlation_id)" $server/micropub |grep HTTP;;
