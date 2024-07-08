@@ -231,6 +231,7 @@
               (for [sig (rest sorted-sigs)]
                 [:li.h-event.thread.list-group-item
                  [:div
+                  [:p [:b "Provider : "] [:a.p-author.h-card {:href (str "https://" (sig :provider)) :target "_blank"} (sig :provider)] ]
                   [:i.bi.bi-list-nested] " "
                   [:a.p-summary {:href (:permafrag sig)} (:summary sig)]]])])]))]]))
 
