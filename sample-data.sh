@@ -2,11 +2,8 @@ function usage() {
   echo "usage: $0 -s server
   -p btd1|btd2  (post sample signal)
   -c correlation_id (optional, use with -p)
-  -g all (get signals)" >&2
+  -q all|query-parameters (get signals) ">&2
   exit 1
-}
-function getAllSignals() {
-    curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  $server/signals
 }
 
 function isDevEnv() {
@@ -25,6 +22,7 @@ function getScheme() {
       echo https
   fi
 }
+
 function getETA() {
   if isDevEnv ; then
       date -u -v+2d +"%Y-%m-%dT%H:00:00Z" # mac
@@ -161,32 +159,38 @@ if ! isDevEnv ; then
   fi
 fi
 
-while getopts "s:p:g:c:" arg; do
+while getopts "s:p:q:c:" arg; do
     case $arg in
         s) server=$(getScheme)://$OPTARG;;
-        p) post_type=$OPTARG;;
-        g) get_type=$OPTARG;;
+        q) query=0 ; query_parameters=$OPTARG;;
+        p) post=0 ; post_type=$OPTARG;;
         c) correlation_id=$OPTARG;;
         *)  usage;;
     esac
 done
+
 
 if [ -z "$server" ]; then
     echo "specify a server" >&2
     usage
 fi
 
-if [ "$correlation_id" ] && [ -z "$post_type" ]; then
+if [ "$correlation_id" ] && [ -z "$post" ]; then
   echo "error: the -c correlation id option cam only be used with -p" 2>&1
   usage
 fi
 
-if [ -z "$post_type" ] && [ -z "$get_type" ]; then
-    echo "error: you must specify -g or -p " >&2
+if [ -z "$post" ] && [ -z "$query" ]; then
+    echo "error: you must specify -q or -p " >&2
     usage
 fi
 
-if [ "$post_type" ]; then
+if [ "$query" ] && [ "$post" ]; then
+    echo "error: -p and -q can't be used together" >&2
+    usage
+fi
+
+if [ "$post" ] ; then
     id=$(LC_ALL=C tr -dc A-Z0-9 </dev/urandom | head -c 4)
     eta=$(getETA)
     echo "transaction ref: $id"
@@ -220,16 +224,20 @@ if [ "$post_type" ]; then
             -d "$(btd2Signal $id $eta)" \
             $server/micropub |egrep "HTTP|^\"" 
         fi ;;
-    *) echo unknown post option  >&2; usage ;;
+    *)
+        echo unknown post option  >&2; usage ;;
     esac
 fi
 
-# todo more GET tests
-if [ "$get_type" ]; then
 
-    case $get_type in
+if [ "$query" ]; then
+
+    case $query_parameters in
     all) 
-          getAllSignals ;;
-    *) echo unknown post option  >&2; usage ;;
+          curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  "$server/signals";;
+    *=*)
+          curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  "$server/signals?$query_parameters";;
+      *)
+          echo "invalid query parameters supplied (should be "all" or, for example, countryOfOrigin=FR ) " >&2; usage ;;
     esac
 fi
