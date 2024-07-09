@@ -7,8 +7,7 @@ function usage() {
 }
 
 function isDevEnv() {
-  e="$(cat - < "$CONFIG" )"
-  if [[ $e =~ :environment[[:space:]]*\"dev\" ]]; then
+  if [ "$(uname)" = "Darwin" ]; then
     return 0
   else
     return 1
@@ -145,20 +144,6 @@ function btd2SignalCorrection() {
 
 # main
 
-CONFIG="config.edn"
-
-if [ ! -f "$CONFIG" ]; then
-  echo "error: can\'t open config.edn - run this script from the isn root directory" &>2
-  exit 1
-fi
-
-if ! isDevEnv ; then
-  if [ -z "$BEARER_TOKEN" ]; then
-      echo "set BEARER_TOKEN variable" >&2
-      exit 1;
-  fi
-fi
-
 while getopts "s:p:q:c:" arg; do
     case $arg in
         s) server=$(getScheme)://$OPTARG;;
@@ -176,7 +161,7 @@ if [ -z "$server" ]; then
 fi
 
 if [ "$correlation_id" ] && [ -z "$post" ]; then
-  echo "error: the -c correlation id option cam only be used with -p" 2>&1
+  echo "error: the -c correlation id option cam only be used with -p" >&2
   usage
 fi
 
@@ -190,6 +175,13 @@ if [ "$query" ] && [ "$post" ]; then
     usage
 fi
 
+if ! isDevEnv ; then
+  if [ -z "$BEARER_TOKEN" ]; then
+      echo "set BEARER_TOKEN variable" >&2
+      exit 1;
+  fi
+fi
+
 if [ "$post" ] ; then
     id=$(LC_ALL=C tr -dc A-Z0-9 </dev/urandom | head -c 4)
     eta=$(getETA)
@@ -198,6 +190,9 @@ if [ "$post" ] ; then
     case $post_type in
       btd1)
         if [ "$correlation_id" ]; then
+    #echo "$correlation_id debug"
+    #btd1SignalCorrection $id $correlation_id
+    #exit
           curl --silent -i -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $BEARER_TOKEN" \
@@ -228,7 +223,6 @@ if [ "$post" ] ; then
         echo unknown post option  >&2; usage ;;
     esac
 fi
-
 
 if [ "$query" ]; then
 
