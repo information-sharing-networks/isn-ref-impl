@@ -6,6 +6,13 @@ function usage() {
     " 2>&1
     exit 1
 }
+function isDevEnv() {
+  if [ "$(uname)" = "Darwin" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
 
 while getopts "b:r:" arg; do
   case $arg in
@@ -40,4 +47,20 @@ if ! tar xzf $BUILD_FILE --directory $SITE_ROOT_DIR; then
     echo "error could not untar $BUILD_FILE to $SITE_ROOT_DIR" >&2
     exit 1
 fi
-echo "site upgraded. Don't forget to stop and start the service usng isn-service.sh" 
+
+if ! isDevEnv ; then
+    echo "restart service?"
+    read -p "> " port
+
+    if ! $SITE_ROOT_DIR/isn-service.sh -r ; then
+        echo "could not stop service using  $SITE_ROOT_DIR/isn-service.sh -r"
+        exit 1
+    fi
+    if ! $SITE_ROOT_DIR/isn-service.sh -s ; then
+        echo "could not start service using  $SITE_ROOT_DIR/isn-service.sh -s"
+        exit 1
+    fi
+    echo "done"
+    exit
+fi
+echo "site upgraded. Don't forget to stop and start the ISN service so it uses the new software"
