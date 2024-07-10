@@ -1,0 +1,15 @@
+{
+  :lab-test-signal.info-sharing.network {
+    :details {
+      :name "labt test results"
+      :purpose "sharing lab test results"
+    }
+    :signals {
+      :lab-test-result { ; payload category
+        :description "Industry lab test results"
+        :list-payload-keys [:cnCode :testDate :batchNumber :testResult] ; mandatory data items
+        :expiry-days-from-now 7
+      }
+    }
+  }
+}

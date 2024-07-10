@@ -1,6 +1,6 @@
 function usage() {
   echo "usage: $0 -s server
-  -p btd1|btd2  (post sample signal)
+  -p sps|labtest  (post sample signal)
   -c correlation_id (optional, use with -p.  This will create a sample signal containing a correction to a previous signal)
   -q all|query-parameters (get signals from the ISN server)
 
@@ -32,7 +32,7 @@ function getETA() {
       date -u -d "+2 days" +"%Y-%m-%dT%H:00:00"Z
   fi
 }
-function btd1Signal() {
+function spsSignal() {
     u=$1
     e=$2
 
@@ -44,7 +44,7 @@ function btd1Signal() {
           "summary": "moving to PortA with ETA $e",
           "category": [
             "pre-notification",
-            "isn@btd-1.info-sharing.network"
+            "isn@sps-signal.info-sharing.network"
           ],
           "payload": {
             "cnCodes": [
@@ -57,7 +57,7 @@ function btd1Signal() {
               "CHEDA .GB.YYYY.XXXXXXX"
             ],
             "unitIdentification": {
-              "ContainerNumber": "12346"
+              "containerNumber": "12346"
             },
             "mode": "RORO",
             "exporterEORI": "EORI-EXP-01",
@@ -66,7 +66,7 @@ function btd1Signal() {
         }
 !
 }
-function btd1SignalCorrection() {
+function spsSignalCorrection() {
     u=$1
     c=$2
 
@@ -77,7 +77,7 @@ function btd1SignalCorrection() {
           "summary": "correction",
           "category": [
             "pre-notification",
-            "isn@btd-1.info-sharing.network"
+            "isn@sps-signal.info-sharing.network"
           ],
           "correlation-id": "$c",
           "payload": {
@@ -90,7 +90,7 @@ function btd1SignalCorrection() {
         }
 !
 }
-function btd2Signal() {
+function labtestSignal() {
     u=$1
     e=$2
     cat <<!
@@ -100,30 +100,26 @@ function btd2Signal() {
           "start": "$e",
           "summary": "unsatisfactory test",
           "category": [
-            "lab-sample-industry-unsatisfactory",
-            "isn@btd-2.info-sharing.network"
+            "lab-test",
+            "isn@lab-test-signal.info-sharing.network"
           ],
           "payload": {
-              "authorisedPesticides": true,
+              "cnCode": "010300",
+              "commodityDescription": "beef hocks",
+              "storageTemperature": "ambient",
+              "countryOfOrigin": "FR",
+              "testDate": "2024-07-05T16:51:51.379676Z",
+              "batchNumber": 134149,
+              "hazardIndicator": "Aflatoxin B1",
               "acceptedHazardLevel": 2,
               "testResult": 3,
-              "hazard": "Aflatoxin",
-              "cnCode": "010300",
-              "reasonForSample": "quality-control",
-              "testDate": "2024-07-05T16:51:51.379676Z",
-              "labType": "Official",
-              "countryOfOrigin": "FR",
-              "batchNumber": 134149,
               "testOutcome": "unsatisfactory",
-              "countryofLab": "FR",
-              "storageTemperature": "ambient",
-              "commodityDescription": "A description",
-              "hazardIndicator": "Aflatoxin B1"
+              "countryofLab": "FR"
             }
         }
 !
 }
-function btd2SignalCorrection() {
+function labtestSignalCorrection() {
     u=$1
     c="$2"
     cat <<!
@@ -132,13 +128,12 @@ function btd2SignalCorrection() {
           "name": "lab sample B (lab test ref: $u)",
           "summary": "satisfactory test (correction)",
           "category": [
-            "lab-sample-industry-unsatisfactory",
-            "isn@btd-2.info-sharing.network"
+            "lab-test",
+            "isn@lab-test-signal.info-sharing.network"
           ],
           "correlation-id": "$c",
           "payload": {
-              "authorisedPesticides": false,
-              "hazard": "none",
+              "hazardIndicator": "none",
               "testOutcome": "satisfactory"
             }
         }
@@ -191,36 +186,33 @@ if [ "$post" ] ; then
     echo "transaction ref: $id"
 
     case $post_type in
-      btd1)
+      sps)
         if [ "$correlation_id" ]; then
-    #echo "$correlation_id debug"
-    #btd1SignalCorrection $id $correlation_id
-    #exit
           curl --silent -i -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $BEARER_TOKEN" \
-            -d "$(btd1SignalCorrection $id $correlation_id)" \
-            $server/micropub |egrep "HTTP|^\"" 
+            -d "$(spsSignalCorrection $id $correlation_id)" \
+            $server/micropub |egrep "HTTP|^\"|^Location" 
         else
           curl --silent -i -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $BEARER_TOKEN" \
-            -d "$(btd1Signal $id $eta)" \
-            $server/micropub |egrep "HTTP|^\"" 
+            -d "$(spsSignal $id $eta)" \
+            $server/micropub |egrep "HTTP|^\"|^Location" 
         fi ;;
-    btd2)
+    labtest)
         if [ "$correlation_id" ]; then
           curl --silent -i -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $BEARER_TOKEN" \
-            -d "$(btd2SignalCorrection $id $correlation_id)" \
-            $server/micropub |egrep "HTTP|^\"" 
+            -d "$(labtestSignalCorrection $id $correlation_id)" \
+            $server/micropub |egrep "HTTP|^\"|^Location" 
         else
           curl --silent -i -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer $BEARER_TOKEN" \
-            -d "$(btd2Signal $id $eta)" \
-            $server/micropub |egrep "HTTP|^\"" 
+            -d "$(labtestSignal $id $eta)" \
+            $server/micropub |egrep "HTTP|^\"|^Location" 
         fi ;;
     *)
         echo unknown post option  >&2; usage ;;
@@ -234,10 +226,6 @@ if [ "$query" ]; then
           curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  "$server/signals";;
     *=*)
           curl --silent -H "Authorization: Bearer $BEARER_TOKEN"  "$server/signals?$query_parameters";;
-     t)
-            curl --silent -H "Accept: application/json" \
-                -H "Authorization: Bearer $BEARER_TOKEN" \
-                "https://github.com/nickabs";;
      token)
             curl --silent -H "Accept: application/json" \
                 -H "Authorization: Bearer $BEARER_TOKEN" \

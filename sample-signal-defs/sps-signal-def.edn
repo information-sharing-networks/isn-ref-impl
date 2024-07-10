@@ -1,0 +1,15 @@
+{
+  :sps-signal.info-sharing.network {
+    :details {
+      :name "SPS sample signal"
+      :purpose "Exchanging SPS movement details"
+    }
+    :signals {
+      :pre-notification { ; payload category
+        :description "Indicators about incoming goods movements" 
+        :list-payload-keys [:cnCodes :commodityDescription :countryOfOrigin :unitIdentification] ; mandatory data items
+        :expiry-days-from-now 14
+      }
+    }
+  }
+ }
