@@ -49,16 +49,18 @@ if ! tar xzf $BUILD_FILE --directory $SITE_ROOT_DIR; then
 fi
 
 if ! isDevEnv ; then
-    echo "restart service?"
-    read -p "> " port
+    echo "restart service? [y/n]"
+    read -p "> " ans
 
-    if ! $SITE_ROOT_DIR/isn-service.sh -r ; then
-        echo "could not stop service using  $SITE_ROOT_DIR/isn-service.sh -r"
-        exit 1
-    fi
-    if ! $SITE_ROOT_DIR/isn-service.sh -s ; then
-        echo "could not start service using  $SITE_ROOT_DIR/isn-service.sh -s"
-        exit 1
+    if [ "$ans" = "y" ]; then
+        if ! $SITE_ROOT_DIR/isn-service.sh -r ; then
+            echo "could not stop service using  $SITE_ROOT_DIR/isn-service.sh -r"
+            exit 1
+        fi
+        if ! $SITE_ROOT_DIR/isn-service.sh -s ; then
+            echo "could not start service using  $SITE_ROOT_DIR/isn-service.sh -s"
+            exit 1
+        fi
     fi
     echo "done"
     exit
