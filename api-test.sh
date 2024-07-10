@@ -4,7 +4,7 @@ function usage() {
   -c correlation_id (optional, use with -p.  This will create a sample signal containing a correction to a previous signal)
   -q all|query-parameters (get signals from the ISN server)
 
-  set a BEARER_TOKEN environment variable specifying the bearer token for your site before running the script
+  unless running in a local dev env, you must set a BEARER_TOKEN environment variable specifying the bearer token for your site before running the script
   use '-q token' to get details of indieauth token associated with your bearer token ">&2
   exit 1
 }
