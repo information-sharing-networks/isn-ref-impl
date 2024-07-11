@@ -1,3 +1,4 @@
+#!/bin/bash
 function usage() {
   echo "usage: $0 -r site root directory [ -srv ]
       control the domain-name-here service 
