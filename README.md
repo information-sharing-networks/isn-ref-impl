@@ -55,13 +55,13 @@ to start the server:
 
 A web server should now be running at http://localhost:5001/
 
-Note although no authentication is done when running in dev mode, you still need to click the "login" button on the front page to see the dashboard contents
+Note although no authentication is done when running in dev mode, you still need to click the "login" button on the front page to view the dashboard contents.
 
-Once you have started the site you can add support for specific signals.  the default installation contained in config.template.dev.edn is configured to use two sample signals
+The default dev site configuration (config.template.dev.edn) is set up so the site can process the two sample signals that are pre-installed with this repository (lab-test-signal.info-sharing.network and sps-signal.info-sharing.network)
 
-the definitions can be found [here](https://github.com/information-sharing-networks/isn-ref-impl/tree/develop/sample-signal-defs#readme)
+A brief explanation of what these signals do, and their definitions, can be found [here](https://github.com/information-sharing-networks/isn-ref-impl/tree/develop/sample-signal-defs#readme)
 
-You can use the api-test.sh script to experiment with publishing signals to your dev site:
+You can use the api-test.sh script to experiment with publishing the sample signals to your dev site:
 
 ```
 api-test.sh -s localhost:5001 -p sps
@@ -89,6 +89,8 @@ git clone git@github.com:border-trade-demonstrators/btd-2.git
       #ref [:user]
     }
  } ; this gives your localhost user permission to create the btd1 and btd2 signal types (the unique name for the signal is defined in the definition file referenced above).
+   ; in production you grant permission to other Participant Sites to post signals by adding the domain name(s) in this section.
+   ; #ref [:user] is a placeholder for your own domain name and should not be removed
 ```
 
 You can read more about how the reference implementation works at your new dev site http://localhost:5001/documentation
@@ -125,7 +127,7 @@ cd isn-ref-impl
 **Step 2** - create the directory to install the Participant Site service software
 
 ```
-mkdir /root/isn-site-dir
+mkdir /your-directory/isn-site-dir
 ```
 
 **Step** 3 - configure the service
@@ -179,6 +181,8 @@ Only authenticated organisations can contribute signals into the ISN via [W3C In
 4.The authorization endpoint issues a temporary authorization code, and sends it to the ISN webapp.
 5.The app checks the code with the authorization endpoint, and if the code is valid and if the user’s identifier matches the identifier the authorization endpoint gives, the login is completed and the user can use the webapp.
 once you have authenticated on your own participant site you can retrieve the bearer token needed to use the ISN API. This token can be used to submit or retrieve signals from other sites where your site have been added as a contributer.
+
+You can allow other sites to contribute/read signals to your site by adding their domain names to the authcns section of your config.edn
 
 note no authentication checks are done in dev mode.
 
