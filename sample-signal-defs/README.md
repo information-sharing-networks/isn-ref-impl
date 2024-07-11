@@ -2,7 +2,7 @@
 
 This repository contains the definitions of two sample [signals](https://github.com/information-sharing-networks/signals) that can be used to experiment with the ISN [reference implementation](https://github.com/information-sharing-networks/isn-ref-impl)
 
-# SPS Signal
+# SPS Signal (sps-signal.info-sharing.network)
 
 The SPS sample signal definition describes a selection of fields related to the movements of agri-food goods that might be shared by organisations participating in an [ISN](https://github.com/information-sharing-networks)
 A draft of the [signal payload](https://github.com/information-sharing-networks/signals#example-3---a-signal-and-its-metadata-which-is-associated-to-a-payload-of-information-in-a-given-domain) fields is below:
@@ -23,7 +23,7 @@ An example of a pre-notification signal:
 
 The signal definition can be found [here](https://github.com/information-sharing-networks/isn-ref-impl/blob/develop/sample-signal-defs/sps-signal-def.edn)
 
-# Lab test signal
+# Lab test signal (lab-test-signal.info-sharing.network)
 this sample signal illustrates how ISN participants my share information about the results of lab tests
 
 | Field name | Description | Data type | Optionality |
