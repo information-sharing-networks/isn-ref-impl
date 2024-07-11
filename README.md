@@ -172,13 +172,16 @@ git pull
 Only authenticated organisations can contribute signals into the ISN via [W3C Indieauth (OAuth-2)](https://www.w3.org/TR/indieauth/). In the reference ISN implementation github is used as the indieauth authentication provider:
 
 1.Your participant site domain name is used to sign-in to both your own site and other participant sites you have permission to use.
+
 2.When you login to a participant site using your domain name, the ISN webapp running on the server will request an authentication endpoint from the specified domain (this is specified in the config.edn file installed on your server). The ISN webapp then redirects the User to their authentication endpoint.
 
 3.The github authentication provider will authenticate login requests when a reference to the Participant site being used to login is present on the User's github profile page. (The link on the github home page should contain a rel="me" property:
 ```<a href="https://isnsite.example.org" rel="me">isnsite.example.com</a>```
 
 ... one way to add this is to create a new "social link" in your github profile)
+
 4.The authorization endpoint issues a temporary authorization code, and sends it to the ISN webapp.
+
 5.The app checks the code with the authorization endpoint, and if the code is valid and if the user’s identifier matches the identifier the authorization endpoint gives, the login is completed and the user can use the webapp.
 once you have authenticated on your own participant site you can retrieve the bearer token needed to use the ISN API. This token can be used to submit or retrieve signals from other sites where your site have been added as a contributer.
 
