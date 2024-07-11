@@ -13,7 +13,7 @@ Every organisation participating in an ISN has a site (with their own URI) to wh
 
 Participant sites can also grant permissions to one another so that signals can be exchanged between sites.
 
-Any ISN participant can reply to a signal contributed by another - this allows additional information related to the original signal - corrections, opinions, claims, attestation etc - to be captured. The [W3C Webmention](https://www.w3.org/TR/webmention/) protocol is used in this reference ISN implementation to permit authenticated parties to associate their replies to signals.
+Any ISN participant can reply to a signal contributed by another - this allows additional information related to the original signal - For example, corrections, opinions, claims, attestation etc - to be captured. The [W3C Webmention](https://www.w3.org/TR/webmention/) protocol is used in this reference ISN implementation to permit authenticated parties to associate their replies to signals.
 
 Information within ISNs is represented via the [signals protocol](https://github.com/information-sharing-networks/signals/blob/main/README.md#signal-definition) internally. For interoperabililty purposes the signal implementation selected for the demonstrator ISNs is a [Microformat 2 'event'](https://microformats.org/wiki/h-event).
 
@@ -33,11 +33,11 @@ git clone git@github.com:information-sharing-networks/isn-ref-impl.git
 cd isn-ref-impl
 ```
 
-create a draft config fille
+create a draft config file
 
 ```cp templates/config.template.dev.edn config.edn```
 
-As a minimum you need to change the values for the following properties (the rest of the properties can be left with the template defaults):
+As a minimum you need to change the values for the following properties in the config.edn file (the rest of the properties can be left with the template defaults):
 
 ```clojure
 {:port 5001
@@ -69,7 +69,7 @@ api-test.sh -s localhost:5001 -q all
 ```
 ... see the script usage statement for details 
 
-if you are adding support for additional signal types, you need to copy the signal definitions to a directory that is accessible by the account running the ISN service. This would normally be done by cloning the github repository containing the definitions, for example:
+If you are adding support for additional signal types, you need to copy the signal definitions to a directory that is accessible by the account running the ISN service. This would normally be done by cloning the github repository containing the definitions, for example:
 ```
 cd isn-ref-impl
 git clone git@github.com:border-trade-demonstrators/btd-1.git
@@ -96,7 +96,7 @@ git clone git@github.com:border-trade-demonstrators/btd-2.git
 You can read more about how the reference implementation works at your new dev site http://localhost:5001/documentation
 
 ### building a new version
-The build.sh script will create an tar archive that can be installed to live Participant Sites.  See the usage statement for details.
+The build.sh script will create a tar archive that can be installed to live Participant Sites.  See the usage statement for details.
 
 ### Testing the service
 
@@ -137,12 +137,12 @@ You can use the configure.sh script to automate the configuration of new sites t
 See usage statement for details.  You will be prompted for the following information
 - port number for the service to listen on
 - the domain name for this Participant site (e.g site.example.com)
-- a description for the site (this will be visible on the website that will be started on the specified site domain)
+- a description for the site (this will be visible on the website header that will be started on the specified site domain)
 - the github account that has been nominated as the controller of the Participant Site (see Authentication below for details)
 - the directory to store received signals in (e.g /root/isn-site-dir/data)
 - the github repository one or more signal definitions that will be handled by the site (e.g git@github.com:border-trade-demonstrators/btd-1.git).  These  repos will be cloned to site installation directory so that the service has a copy of the signal definitions)
  
-The script will 
+The script will then
 - Unpack the build file into the isn directory created above
 - Configure  config.edn for production
 - create a systemctl service script to automatically restart the service on reboot
@@ -154,7 +154,7 @@ If your are adding support for new signal types then install the definition proj
 
 **step 4** stop/start the service manually
 
-Use isn-service.sh to manual stop or start the service, e.g
+Use isn-service.sh to manually stop or start the service, e.g
 ```
 cd isn-site-dir
 ./isn-service -s # starts service
@@ -183,7 +183,7 @@ Only authenticated organisations can contribute signals into the ISN via [W3C In
 4.The authorization endpoint issues a temporary authorization code, and sends it to the ISN webapp.
 
 5.The app checks the code with the authorization endpoint, and if the code is valid and if the user’s identifier matches the identifier the authorization endpoint gives, the login is completed and the user can use the webapp.
-once you have authenticated on your own participant site you can retrieve the bearer token needed to use the ISN API. This token can be used to submit or retrieve signals from other sites where your site have been added as a contributer.
+once you have authenticated on your own participant site you can retrieve the bearer token needed to use the ISN API. This token can be used to submit or retrieve signals from other sites where your site have been added as a contributer. The API bearer token can be found by clicking the "Account" tab in the navigation bar in your site.
 
 You can allow other sites to contribute/read signals to your site by adding their domain names to the authcns section of your config.edn
 
