@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function usage() {
   echo "usage: $0 -s server
   -p sps|labtest  (post sample signal)

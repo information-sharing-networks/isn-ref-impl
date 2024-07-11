@@ -1,4 +1,4 @@
-# todo signal def sub dir
+#!/bin/bash
 function usage(){
     echo "usage: $0 -r root dir for site files [ -i build file ]  [ -cns ] 
     -i install the ISN software 

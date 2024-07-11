@@ -1,3 +1,4 @@
+#!/bin/bash
 # install specified version of software on a site installed locally
 
 function usage() {
@@ -14,6 +15,7 @@ function isDevEnv() {
   fi
 }
 
+echo beep
 while getopts "b:r:" arg; do
   case $arg in
     b) export BUILD_FILE=$OPTARG ;;

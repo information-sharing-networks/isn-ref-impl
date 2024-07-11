@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 function usage(){
     echo "usage:  $0 -b current|patch|minor [ -t ] 
