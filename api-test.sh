@@ -100,7 +100,7 @@ function labtestSignal() {
           "start": "$e",
           "summary": "unsatisfactory test",
           "category": [
-            "lab-test",
+            "lab-test-result",
             "isn@lab-test-signal.info-sharing.network"
           ],
           "payload": {
