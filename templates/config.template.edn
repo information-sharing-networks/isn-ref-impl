@@ -34,9 +34,9 @@
  :indieauth-state "setAStateHere" ; used in the Indieauth flow
  :indielogin-uri "https://some-indielogin.tld/auth" ; uri for your preferred indielogin svc
  :redirect-uri "/" ; used to point to the URI you are redirected to upon login, override if you need to
- :data-path "" ; used to point to a data directory somewhere on disk e.g. /home/you/.isn.isn-name/site-acme/data
+ :data-path "" ; used to point to a data directory somewhere on disk e.g. /home/you/isnsite/data
  :environment "production" ; setting the env to dev will remove the need to supply a valid token
- :dev-site "https://signals-provider.example.org" ; default site to use in token lookup site resolution in dev mode - set here to a useful ISN related default
+ :dev-site "https://signals-provider.example.org" ; default site to use in token lookup site resolution in dev mode (not currently used)
  :support-email "support@email.com" ; a configurable support email which may point to either an ISN Executive Committee tech function or an ISN Network Executive Committee tech function
  :csp-settings {
    :connect-src #ref [:site-root]

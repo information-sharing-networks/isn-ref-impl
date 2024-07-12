@@ -15,7 +15,7 @@ Participant sites can also grant permissions to one another so that signals can 
 
 Any ISN participant can reply to a signal contributed by another - this allows additional information related to the original signal - For example, corrections, opinions, claims, attestation etc - to be captured. The [W3C Webmention](https://www.w3.org/TR/webmention/) protocol is used in this reference ISN implementation to permit authenticated parties to associate their replies to signals.
 
-Information within ISNs is represented via the [signals protocol](https://github.com/information-sharing-networks/signals/blob/main/README.md#signal-definition) internally. For interoperabililty purposes the signal implementation selected for the demonstrator ISNs is a [Microformat 2 'event'](https://microformats.org/wiki/h-event).
+Signals are created using an Indieweb [Microformat 2 'event'](https://microformats.org/wiki/h-event) post type by calling the ISN site 'micropub' endpoint, internally this creates a 'signal' compliant with theinformation-sharing-network [signals protocol](https://github.com/information-sharing-networks/signals/blob/main/README.md#signal-definition).
 
 # Getting started
 
@@ -42,20 +42,21 @@ As a minimum you need to change the values for the following properties in the c
 ```clojure
 {:port 5001
  :site-name "Your test tite name"
- :user "user.example.com" ; in production this is the domain name of the site, you can use any value for dev (the "dev-site" entry must specify the domain set here).
+ :user "user.example.com" 
  :site-root "http://localhost:5001"
  :data-path "/yourdirectory/isn-ref-impl/data"
- :environment "dev" ; setting the env to dev will remove the need to supply a valid token
- :dev-site "https://user.example.com" ; 
+ :environment "dev" 
+ :dev-site "https://user.example.com" 
 ...
 ```
+You will need to create the directory specified in data-path and then create a subdirectory within it called "signals" (do not refer to the signals subdir in the data-path above)
 
 to start the server:
 ```run.sh```
 
 A web server should now be running at http://localhost:5001/
 
-Note although no authentication is done when running in dev mode, you still need to click the "login" button on the front page to view the dashboard contents.
+Note although no authentication is done when running in dev mode, you still need to click the "login" button on the front page to view the dashboard contents (the dashboard will initially be empty).
 
 The default dev site configuration (config.template.dev.edn) is set up so the site can process the two sample signals that are pre-installed with this repository (lab-test-signal.info-sharing.network and sps-signal.info-sharing.network)
 
@@ -64,7 +65,9 @@ A brief explanation of what these signals do, and their definitions, can be foun
 You can use the api-test.sh script to experiment with publishing the sample signals to your dev site:
 
 ```
+# post a sample SPS signal
 api-test.sh -s localhost:5001 -p sps
+# retrieve all signal that have been posted to the site
 api-test.sh -s localhost:5001 -q all
 ```
 ... see the script usage statement for details 
@@ -229,7 +232,12 @@ curl -i -X POST -H "Content-Type: application/json" -H "Authorization: Bearer YO
         } '  https://isnserver.example.com/micropub
 ```
 
-if the request is sucessful the URI of the created signal will be included in the Location Header, eg ```Location: https://isnserver.example.com/signals/20240711-aa37d3c9-92b88ed2```
+if the request is sucessful the server returns a 201 status code and the URI of the created signal will be included in the Location Header, eg ```Location: https://isnserver.example.com/signals/20240711-aa37d3c9-92b88ed2```
+
+Possible error status codes:
+- 400: indicates the user has not complied with the specification required to make a signal  (in this demonstrator this generally means that the server can't locate or parse the signal definition edn file associated wth the signal type that was supplied)
+- 401: the user's access token is invalid. You can get the valid access token from the 'Account' tab in you ISN participant site. The valid token should replace the words YOUR-TOKEN in the "Authorization: Bearer YOUR-TOKEN" in the request.
+- 500: server error - internal error with the ISN software (this can happen when, for instance, the signals subdirectory is not present in the data-path directory specified in config.edn).
 
 *notes*
 | Attribute | Description | Optionality |
@@ -292,6 +300,12 @@ curl -i -X POST -H "Content-Type: application/json" -H Authorization: Bearer YOU
         } '  https://isnserver.example.com/micropub
 
 ```
+using the abbreviated syntax to post data:
+The POST API can also recieve data using an x-www-form-urlencoded content type, for example:
+```bash
+curl -i -X POST -H "Authorization: Bearer YOUR-BEARER-TOKEN" -d h=event -d "name=brazil nuts" -d start="2024-03-25T15:00:00.00Z" -d "summary=moving to PortA with ETA 2024-03-25T15:00:00.00Z" -d category=pre-notification -d category=isn@btd-1.info-sharing.network -d "description=cnCode=cnNuts^countryOfOrigin=GB^mode=RORO" https://your-site.my-example.xyz/micropub
+```
+
 ## get
 An example of retrieving data using query parameters:
 ```
