@@ -98,14 +98,16 @@ git clone git@github.com:border-trade-demonstrators/btd-2.git
 
 You can read more about how the reference implementation works at your new dev site http://localhost:5001/documentation
 
-### building a new version
-The build.sh script will create a tar archive that can be installed to live Participant Sites.  See the usage statement for details.
-
 ### Testing the service
 
 ```
 clj -X:test
 ```
+
+### Building a new version
+The build.sh script will create a tar archive that can be installed to live Participant Sites.  See the usage statement for details.
+
+
 
 *Development style guide*
 
