@@ -244,14 +244,14 @@ Possible error status codes:
 *notes*
 | Attribute | Description | Optionality |
 | --- | --- | --- | 
-| h | Indicates the post type we are creating - for signals this is 'event' | Required |
+| h | Indicates the post type we are creating - for signals this is always 'event' | Required |
 | name | A human readable name for the signal. This is recorded as the 'object' of the signal in the stored data | Required |
 | summary | A human readable description of the event described by the signal. This is recorded as the 'predicate' of the signal in the stored data  |	Required |
 | start	| Signals may has a start date (ISO 8601) - this can be passed in per '2023-02-07T21:00:00Z'. In the sample SPS singal mentioned above this is used to indicate an ETA for goods arriving in the country. |	Optional |
 | end | Every signal has an end or expiry date (ISO 8601) - if not provided in the API call the default in terms of days from now is configured for an organisations ISN site per signal. This can be passed in per '2023-02-07T21:00:00Z' or '2023-02-07 21:00:00'.| Optional |
-| category |  There are typically two uses of this field: a domain specific category and isn signal type identifiers.  An example of an isn type identifier is mandatory and consists of the isn identifier with an 'isn@' prefix (e.g isn@sps-signal.info-sharing.network).  It is the combination of these two categories which determines the required fields in the payload. These items should align wih the corresponding signal definition. (this design means it is possible to define multiple payload definitions within a signal type, although this functionality is not currently supported) | Required | 
+| category |  Two categpories should be supplied: a payload category and isn signal type identifier.  The name of the payload category should correspond to one of the payload sections included in the signal type definition. the isn type identifier consists of the isn identifier with an 'isn@' prefix (e.g isn@sps-signal.info-sharing.network).  The combination of these two categories  determines the required fields in the payload (this design means it is possible to define multiple payload definitions within a signal type, although this functionality is not currently supported in the reference implementation) | Required | 
 | correlationId | correlation ids are autimatically created unless supplied by the client.  When the client supplies a previously issued correlationId then the supplied signal will be linked to the original signal (see example below). | Optional |
-| isn, permafrag, signalId,  publishedDate | these are system generated | N/A |
+| isn, permafrag, signalId,  publishedDate | these are system generated and should not be supplied by the client | N/A |
 
 the signal is stored as an EDN file on the server:
 ```clojure
