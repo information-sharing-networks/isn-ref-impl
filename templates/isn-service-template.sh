@@ -54,7 +54,7 @@ fi
 
 if [ "$STATUS" ]; then 
     echo $service status
-    systemctl status $service
+    systemctl status $service --no-pager
     exit
 fi
 
