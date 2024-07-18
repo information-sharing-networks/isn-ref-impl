@@ -240,6 +240,7 @@ Possible error status codes:
 - 400: indicates the user has not complied with the specification required to make a signal  (in this demonstrator this generally means that the server can't locate or parse the signal definition edn file associated wth the signal type that was supplied)
 - 401: the user's access token is invalid. You can get the valid access token from the 'Account' tab in you ISN participant site. The valid token should replace the words YOUR-TOKEN in the "Authorization: Bearer YOUR-TOKEN" in the request.
 - 500: server error - internal error with the ISN software (this can happen when, for instance, the signals subdirectory is not present in the data-path directory specified in config.edn).
+- 502: Bad Gateway error - this error will occur if the site running the API is unavailable or if your own site can't be reached during the authentication step.
 
 *notes*
 | Attribute | Description | Optionality |
