@@ -151,7 +151,7 @@ The script will then
 - Unpack the build file into the isn directory created above
 - Configure  config.edn for production
 - create a systemctl service script to automatically restart the service on reboot
-- create an nginx configuration to handle requests to an ISN site on the specified domain (the nginx config will act as reverse proxy site passing API requests to the ISN service running at the port you specified in the configuration).
+- create an nginx configuration to handle requests to an ISN site on the specified domain (the nginx config will act as reverse proxy site passing API requests to the ISN service running at the port you specified in the configuration). Note the site will be set up to handle HTTP requests - if running on production you will need to configure it for HTTPS. 
 
 You can grant permission to other participant sites to post/get signals from your site by adding them to the 'authcns' section of config.edn 
 
@@ -250,7 +250,7 @@ Possible error status codes:
 | summary | A human readable description of the event described by the signal. This is recorded as the 'predicate' of the signal in the stored data  |	Required |
 | start	| Signals may has a start date (ISO 8601) - this can be passed in per '2023-02-07T21:00:00Z'. In the sample SPS singal mentioned above this is used to indicate an ETA for goods arriving in the country. |	Optional |
 | end | Every signal has an end or expiry date (ISO 8601) - if not provided in the API call the default in terms of days from now is configured for an organisations ISN site per signal. This can be passed in per '2023-02-07T21:00:00Z' or '2023-02-07 21:00:00'.| Optional |
-| category |  Two categpories should be supplied: a payload category and isn signal type identifier.  The name of the payload category should correspond to one of the payload sections included in the signal type definition. the isn type identifier consists of the isn identifier with an 'isn@' prefix (e.g isn@sps-signal.info-sharing.network).  The combination of these two categories  determines the required fields in the payload (this design means it is possible to define multiple payload definitions within a signal type, although this functionality is not currently supported in the reference implementation) | Required | 
+| category |  At least two categpories should be supplied: a payload category and isn signal type identifier.  The name of the payload category should correspond to one of the payload sections included in the signal type definition. The isn type identifier consists of the isn identifier with an 'isn@' prefix (e.g isn@sps-signal.info-sharing.network).  The combination of these two categories  determines the required fields in the payload (this design means it is possible to define multiple payload definitions within a signal type, although this functionality is not currently supported in the reference implementation). Additional categories can be supplied but will be ignored by the system (the exception is the "test" category which will prevent the data showing on the dashboard).| Required | 
 | correlationId | correlation ids are autimatically created unless supplied by the client.  When the client supplies a previously issued correlationId then the supplied signal will be linked to the original signal (see example below). | Optional |
 | isn, permafrag, signalId,  publishedDate | these are system generated and should not be supplied by the client | N/A |
 
