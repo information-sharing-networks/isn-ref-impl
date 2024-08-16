@@ -7,6 +7,19 @@
     :signals {
       :pre-notification { ; payload category
         :description "Indicators about incoming goods movements" 
+        :properties {
+          :cnCodes "a list of Commodity Codes for the goods"
+          :chedNumbers "a list of CHED reference numbers related to the movement"
+          :commodityDescription "a summary description of the goods in the movement"
+          :exporterEORI "Economic operator ID for the exporter"
+          :importerEORI "Economic operator ID for the importer"
+          :mode "RORO  (Rail/Air/Maritime not supported in this signal definition)"
+          :unitIdentification {
+            :trailerRegistrationNumber "TRN should be supplied where available"
+            :containerNumber "supply where relevant"
+            :tractorRegristratioNumber "VRN for drive accompanied movements"
+          }
+        }
         :list-payload-keys [:cnCodes :commodityDescription :countryOfOrigin :unitIdentification] ; mandatory data items
         :expiry-days-from-now 14
       }

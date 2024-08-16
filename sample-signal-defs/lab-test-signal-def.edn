@@ -7,6 +7,20 @@
     :signals {
       :lab-test-result { ; payload category
         :description "Industry lab test results"
+        :properties  {
+          :cnCodes "a list of Commodity Codes for the goods"
+          :commodityDescription "a summary description of the goods in the movement"
+           :storageTemperature "storage temperature"
+              :countryOfOrigin "country"
+              :testDate "test date"
+              :batchNumber "batch"
+              :hazardIndicator "hazard indicator"
+              :acceptedHazardLevel "hazard level"
+              :testResult "test result"
+              :testOutcome "outcome"
+              :countryofLab "Country of lab"
+          }
+        }
         :list-payload-keys [:cnCode :testDate :batchNumber :testResult] ; mandatory data items
         :expiry-days-from-now 7
       }
