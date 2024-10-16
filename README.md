@@ -322,6 +322,12 @@ curl -H "Authorization: Bearer YOUR-BEARER-TOKEN"  https://isn-server.example.co
 ```
 The above example will return signals published on the 2nd Feb between 07:00 and 08:00 inclusive. The & is escaped as the curl command is run in the terminal.
 
+To retreive a signal based on the _Location_ returned in the HTTP headers following the creation of a new signal, you can use the permafrag field as a query parameter, for instance:
+```
+curl -H "Authorization: Bearer YOUR-BEARER-TOKEN"  https://isn-server.example.com/signals?permafrag=signals/20240711-aa37d3c9-92b88ed2
+```
+
+
 # Limitations
 
 Note that the reference implementation was created to demonstrate the concept of Signals and has limited functionality:
