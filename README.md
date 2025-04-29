@@ -281,7 +281,7 @@ the signal is stored as an EDN file on the server:
  :object "chicken and beef (movement ref: DUH9)"}
  ```
 
-using a correlation id to create a thread of signals:
+## using a correlation id to create a thread of signals:
 
 ```bash 
 curl -i -X POST -H "Content-Type: application/json" -H Authorization: Bearer YOUR-BEARER-TOKEN" -d  '{
