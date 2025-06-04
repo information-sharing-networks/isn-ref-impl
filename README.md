@@ -327,6 +327,95 @@ To retreive a signal based on the _Location_ returned in the HTTP headers follow
 curl -H "Authorization: Bearer YOUR-BEARER-TOKEN"  https://isn-server.example.com/signals?permafrag=signals/20240711-aa37d3c9-92b88ed2
 ```
 
+## Specification
+
+**V0.2.0**
+
+### Example 1 - The simplest possible signal
+
+N.B. we are using Extensible Data Notation to outline signal structure here to simplify signal presentation - implementations of the protocol will present signals in a number of formats including JSON.
+
+```clojure
+{
+  :provider "sample-isn.my-example.xyz" [1]
+  :published "2023-03-16T22:51:51.379072Z" [2]
+  :signalId "704e851a-9ab4-40d6-b995-765f64104072" [3]
+  :correlationId "734713bc04" [4]
+  :category #{"isn-membership-participant-update" "isn@sample-isn.my-example.xyz"} [5]
+  :object "organisation-a.my-example.xyz" [6]
+  :predicate "joins ISN sample-isn.my-example.xyz" [7]
+}
+```
+
+- 1: **System provided usually** The signal provider (all signals are contributed into an [Information Sharing Network (ISN)](https://github.com/information-sharing-networks/.github/blob/main/glossary.md#information-sharing-network-isn) information exchange infrastructure by a site on behalf of an organisation)
+- 2: **System provided** The instant in time a signal is published into an ISN
+- 3: **System provided** A unique identifier which makes this signal distinct
+- 4: **System provided** A unique identifier which lets all actors using and adding to a signal understand they are operating on the same signal (traces through workflows)
+- 5: **Required - user provided** Category used to indicate both which ISN the signal pertains to (ISN category) and what kind of signal is being transmitted (domain signal or signals) - both are required
+- 6: **Required - user provided** A simple name to represent the signal where it is placed adjacent to others (human readable and meaningful)
+- 7: **Required - user provided** A more meaningful and full explanation of the signal's purpose (when combined with the object creates a single sentence much like those that are part of an event log describing what is happening over time e.g. Git messages)
+
+This is a simple and encapsulated signal - but not very useful.
+
+### Example 2 - A more detailed (useful) example
+
+```clojure
+{
+  :provider "sample-isn.my-example.xyz"
+  :start "2023-03-17T22:51:51.379676Z" [1]
+  :end "2023-03-18T18:00:00Z" [2]
+  :published "2023-03-16T22:51:51.379072Z"
+  :signalId "704e851a-9ab4-40d6-b995-765f64104072"
+  :correlationId "734713bc04"
+  :category #{"isn-membership-participant-update" "isn@sample-isn.my-example.xyz"}
+  :object "organisation-a.my-example.xyz"
+  :predicate "joins ISN sample-isn.my-example.xyz"
+  :providerMapping {
+    :id "804e851b-9ab4-40d6-b995-765f64104072"
+    :uri "https://uri-to-system-which-provided.io/xyz/"
+  } [3]
+}
+```
+- 1: **System provided** (TBC) we are thinking on this one - could be e.g. an ETA or could be the moment in time the signal is valid from
+- 2: **System provided** the instant in time a signal expires and will no longer be surfaced in operational contexts
+- 3: **Optional - upstream system or user provided** a mapping construct that lets us associate a signal with information in an upstream system (which has directly provided it) through a number of identity related fields
+
+This is a slightly more involved example. It is based on an actual signal indicating membership change within an ISN but is contrived as it demonstrates how we might link to an underlying system which provides the signal (which is irrelevant for this type of signal).
+
+### Example 3 - A signal and its metadata which is associated to a payload of information in a given domain
+
+```clojure
+{
+  :provider "sample-isn.my-example.xyz"
+  :start "2024-01-10T16:51:51.379676Z"
+  :end "2024-01-20T18:00:00Z"
+  :published "2024-01-08T12:51:51.379072Z"
+  :signalId "704e851a-9ab4-40d6-b995-765f64104072"
+  :correlationId "734713bc04"
+  :category #{"isn-membership-participant-update" "isn@sample-isn.my-example.xyz"}
+  :object "organisation-a.my-example.xyz"
+  :predicate "joins ISN sample-isn.my-example.xyz"
+  :payload {
+    :dueDiligenceChecked true
+    :participantMembershipAgreementLevel :majority
+  } [1]
+}
+```
+- 1: **Optional - upstream system or user provided** a map of key value pairs capturing any required domain related information. E.G. associating the metadata in a signal to moving goods in the supply chain. Note it is a combination of the isn category (isn@sample-isn.my-example.xyz) and the domain category which determines what the payload will be. It is important that the payload honours the contract for this combination of categories by being backwards compatible (e.g. fields may be added to it but not removed or renamed, this may result in the need to use new key/value pairs withi the payload while continuing to pass old unused key/value pairs).
+
+*How might these signals look when sufaced e.g. on a dashboard?*
+
+- organisation-a.my-example.xyz joins ISN XYZ
+- organisation-b.my-example.xyz joins ISN XYZ
+- ...
+
+Again this is a slightly more involved example. In the same way as example 2 above it is based on a real signal. This example it contrived as it includes a payload which represents domain specific information. Here we include sample payload information indicating whether due diligence was undertaken for the process of onboarding the new participant into the ISN and the level of agreement reached by existing ISN participants.
+
+
+## Further links
+A  proof of concept implementation of these ideas can be found [here](https://github.com/information-sharing-networks/isn-ref-impl)
+
+
 
 # Limitations
 
